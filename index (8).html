@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treasure Hunt</title>
+<style>
+:root{
+  --parch:#F6E7C1; --parch2:#E9CF91; --card:#FFF8E3; --ink:#3B2A1A; --muted:#7A6248; --line:#3B2A1A;
+  --gold:#F2B705; --sea:#2A7FAF; --sea2:#6EC6EE; --red:#C0392B; --good:#2E9E5B; --goodbg:#D8F3E2; --bad:#C0392B; --badbg:#FFD9D2; --blue:#2A7FAF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;color:var(--ink);background:#F6E7C1;background:linear-gradient(#F6E7C1,#E9CF91);background-attachment:fixed;font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;font-size:18px;line-height:1.3;min-height:100vh;-webkit-user-select:none;user-select:none}
+button,input,textarea{font-family:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:12px 12px 40px}
+h1,h2{margin:0 0 6px;font-family:Georgia,"Times New Roman",serif}
+.btn{font-size:1rem;font-weight:700;color:var(--ink);background:var(--card);border:3px solid var(--line);border-radius:16px;padding:9px 14px;cursor:pointer;box-shadow:0 4px 0 var(--line);touch-action:manipulation}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.gold{background:var(--gold)}
+.btn.sel{background:var(--gold)}
+.btn.big{font-size:1.25rem;padding:13px 18px;width:100%}
+.panel{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 6px 0 var(--line)}
+.center{text-align:center}
+.hint{color:var(--muted);margin:6px 0 10px}
+.pill{border:3px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--card);font-weight:700;white-space:nowrap;font-size:.95rem}
+.bar{height:16px;border:3px solid var(--line);border-radius:999px;background:var(--parch2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold);border-right:3px solid var(--line)}
+.bar i[style*="width:0%"]{border-right:0}
+.stack{display:grid;grid-gap:10px;gap:10px;margin-top:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px;gap:10px;margin-top:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;grid-gap:10px;gap:10px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;margin:10px 0 4px}
+.chips .btn{margin:4px;padding:5px 12px;font-size:.92rem;box-shadow:0 3px 0 var(--line)}
+.foot{text-align:center;margin-top:20px}
+.link{font-size:.95rem;color:var(--muted);background:none;border:0;text-decoration:underline;cursor:pointer;padding:6px}
+.top{display:flex;align-items:center;margin-bottom:10px}
+.top>*{margin-right:8px}
+.top>*:last-child{margin-right:0}
+
+/* home */
+.ship{font-size:4.6rem;line-height:1.1;display:inline-block;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+.hero h1{font-size:1.9rem}
+.hero .sub2{font-weight:700;margin:0 0 8px}
+.hero small{color:var(--muted);display:block;margin-top:6px}
+
+/* board */
+.sea{background:#4DA6D6;background:linear-gradient(#6EC6EE,#2A7FAF);border:4px solid var(--line);border-radius:20px;padding:8px}
+.board{display:grid;grid-gap:3px;gap:3px}
+.board .sq .in{font-size:1.15rem;border-width:2px;border-radius:6px;overflow:hidden}
+.board .sq .tok{font-size:1.5rem;position:relative;z-index:3}
+.board .sq .no{z-index:2;font-size:.5rem}
+.board .sq.corner .in{border-width:3px}
+.band{position:absolute;z-index:1;border:0}
+.band.b{top:0;left:0;right:0;height:22%}
+.band.t{bottom:0;left:0;right:0;height:22%}
+.band.l{top:0;bottom:0;right:0;width:22%}
+.band.r{top:0;bottom:0;left:0;width:22%}
+.cbox{position:relative;min-width:0;min-height:0;background:#FFF8E3;border:3px solid var(--line);border-radius:10px;overflow:hidden}
+.cbox .cin{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center}
+.ctitle{font-family:Georgia,serif;font-weight:900;text-align:center;line-height:1;transform:rotate(-35deg);font-size:clamp(1.2rem,8vw,2.8rem);letter-spacing:2px;color:var(--ink)}
+.ctitle small{display:block;font-size:.55em;letter-spacing:6px;color:var(--red)}
+.ccard{position:absolute;width:30%;height:22%;border:3px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:700;font-size:clamp(.5rem,2.4vw,.8rem);text-align:center;line-height:1.1}
+.ccard span{font-size:1.6em}
+.ccard.a{top:8%;left:8%;background:#F7B6DD;transform:rotate(30deg)}
+.ccard.c{bottom:8%;right:8%;background:#FFE680;transform:rotate(30deg)}
+.sq{position:relative;width:100%;padding-bottom:100%}
+.sq .in{position:absolute;top:0;left:0;right:0;bottom:0;border:3px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--ink)}
+.sq .no{position:absolute;top:1px;left:4px;font-size:.58rem;font-weight:700;opacity:.55}
+.sq .mini{position:absolute;right:3px;bottom:0;font-size:.8rem}
+.sq .tok{font-size:1.9rem;animation:bob 1.6s ease-in-out infinite}
+.sq.here .in{outline:4px solid #fff;outline-offset:-2px}
+.hud{display:flex;flex-wrap:wrap;justify-content:center;margin:0 0 8px}
+.hud .pill{margin:3px}
+.ctrl{display:flex;align-items:center;margin-top:12px}
+.ctrl>*{margin-right:10px}
+.ctrl>*:last-child{margin-right:0}
+.dice{min-width:78px;text-align:center;font-size:1.9rem;font-weight:700;border:3px solid var(--line);border-radius:16px;padding:4px 8px;background:#fff}
+.status{text-align:center;font-weight:700;min-height:1.5em;margin:8px 0 0}
+
+/* modal */
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;background:rgba(30,20,10,.6);z-index:50;padding:12px}
+.modal.on{display:flex}
+.mcard{width:100%;max-width:470px;max-height:95vh;overflow:auto;background:var(--card);color:var(--ink);border:4px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 6px 0 var(--line);text-align:center}
+.badge{display:inline-block;border:3px solid var(--line);border-radius:999px;padding:2px 14px;font-weight:700;background:var(--gold);margin-bottom:6px}
+.bigem{font-size:4.4rem;line-height:1.1}
+.bignum{font-size:4rem;font-weight:700;line-height:1.1;font-family:Georgia,serif}
+.big{font-size:3.4rem;line-height:1.15}
+.opts{display:grid;grid-template-columns:1fr 1fr;grid-gap:10px;gap:10px;margin:10px 0}
+.opts.sent{grid-template-columns:1fr}
+.opt{color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 6px;cursor:pointer;box-shadow:0 4px 0 var(--line);min-height:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;touch-action:manipulation;font-size:1.1rem;font-weight:700;line-height:1.15}
+.opt .em{font-size:3rem;line-height:1.1}
+.opt .lb{font-size:.9rem}
+.opt.pics{min-height:92px}
+.opt.yn{min-height:64px;font-size:1.2rem}
+.opt:disabled{cursor:default}
+.opt.good{background:var(--goodbg);border-color:var(--good);box-shadow:0 4px 0 var(--good)}
+.opt.bad{background:var(--badbg);border-color:var(--bad);box-shadow:0 4px 0 var(--bad)}
+.opt.hide{visibility:hidden}
+.fb{border-radius:14px;padding:8px 12px;margin:8px 0 10px;font-weight:700}
+.fb.good{background:var(--goodbg);border:3px solid var(--good)}
+.fb.bad{background:var(--badbg);border:3px solid var(--bad)}
+.slots{min-height:60px;border:3px dashed var(--line);border-radius:14px;padding:6px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;margin:8px 0}
+.pool{display:flex;flex-wrap:wrap;justify-content:center;margin:8px 0 10px}
+.tk{font-weight:700;font-size:1.3rem;color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:12px;padding:5px 13px;cursor:pointer;box-shadow:0 3px 0 var(--line);touch-action:manipulation;margin:4px}
+.tk.ans{background:var(--gold)}
+.cmd{font-size:1.55rem;font-weight:700;margin:6px 0}
+.who{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;margin-bottom:4px}
+.who>*{margin:4px 6px}
+.avatar{font-size:2.8rem;line-height:1}
+.bubble{background:#fff;border:3px solid var(--line);border-radius:18px;padding:5px 12px;font-weight:700}
+.wordtag{display:inline-block;background:#fff;border:3px solid var(--line);border-radius:12px;padding:2px 10px;font-weight:700;margin:4px 0}
+.say{margin:2px 0 4px}
+.stats{display:flex;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.stat{border:3px solid var(--line);border-radius:14px;padding:3px 10px;margin:4px;background:#fff;font-weight:700}
+.legend{display:grid;grid-template-columns:1fr;grid-gap:6px;gap:6px;text-align:left;margin:8px 0}
+.legend div{display:flex;align-items:center;font-size:.95rem}
+.legend span.ic{display:inline-block;min-width:38px;text-align:center;font-size:1.4rem;margin-right:6px}
+.pop{position:fixed;pointer-events:none;z-index:60;font-size:1.6rem}
+.float{position:fixed;left:50%;top:30%;transform:translate(-50%,0);font-weight:700;font-size:1.5rem;pointer-events:none;z-index:70;text-shadow:0 0 6px #fff,0 0 6px #fff}
+.shipsel{display:grid;grid-template-columns:1fr 1fr 1fr;grid-gap:10px;gap:10px;margin-top:10px}
+.sh{color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 4px;text-align:center;cursor:pointer;box-shadow:0 4px 0 var(--line);font-size:.85rem;touch-action:manipulation}
+.sh .em{font-size:2.4rem;display:block;line-height:1.1}
+.sh.on{background:var(--gold)}
+.sh.lock{opacity:.5;border-style:dashed;cursor:default;box-shadow:none}
+.rank{display:flex;align-items:center;justify-content:space-between;border:3px solid var(--line);border-radius:14px;padding:6px 12px;margin:6px 0;background:#fff;font-weight:700;text-align:left}
+.rank.lock{opacity:.5;border-style:dashed}
+.stk{color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:16px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;cursor:pointer;box-shadow:0 3px 0 var(--line);touch-action:manipulation;font-size:1rem}
+.stk .em{font-size:2.4rem;line-height:1.1}
+.stk b{font-size:.85rem;text-align:center}
+.stk.lock{opacity:.55;border-style:dashed;box-shadow:none;cursor:default}
+.stk.lock .em{filter:grayscale(1)}
+@media (max-width:420px){.opt .em{font-size:2.6rem}.bigem{font-size:3.8rem}}
+@media (prefers-reduced-motion: reduce){.ship,.sq .tok{animation:none}}
+
+/* teacher editor */
+.ed{-webkit-user-select:text;user-select:text}
+.ed label{display:block;font-weight:700;margin:12px 0 4px;text-align:left}
+.ed input[type=text]{width:100%;font-size:1rem;color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:12px;padding:8px 12px}
+.ed textarea{width:100%;font-family:Consolas,Menlo,monospace;font-size:.95rem;line-height:1.45;color:var(--ink);background:#fff;border:3px solid var(--line);border-radius:12px;padding:10px;min-height:300px;resize:vertical}
+.ed .chk{display:flex;align-items:center;margin:10px 0;font-weight:600;text-align:left}
+.ed .chk input{margin-right:8px;width:20px;height:20px}
+.ed .info{background:#fff;border:3px solid var(--line);border-radius:12px;padding:8px 12px;margin:10px 0;text-align:left;font-size:.95rem}
+.ed .info .w{color:var(--bad)}
+.ed details{margin:10px 0;text-align:left}
+.ed summary{cursor:pointer;font-weight:700;padding:6px 0}
+.ed pre{background:#fff;border:3px solid var(--line);border-radius:12px;padding:10px;font-size:.9rem;overflow:auto;white-space:pre-wrap;text-align:left;margin:8px 0}
+.emo{display:flex;flex-wrap:wrap;max-height:180px;overflow:auto;border:3px solid var(--line);border-radius:12px;padding:6px;background:#fff}
+.emo button{font-size:1.5rem;background:none;border:0;cursor:pointer;padding:4px 6px;border-radius:8px}
+.msg{font-weight:700;margin:10px 0 0;text-align:left}
+.msg.err{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="modal" id="modal"></div>
+<script id="deck-data" type="application/json">{"v": 1, "title": "Treasure Hunt", "source": "# Unit 1 - Quốc gia\n🇺🇸 | America / American\n🇦🇺 | Australia / Australian\n🇬🇧 | Britain / British\n🇻🇳 | Vietnam / Vietnamese\nask | Where are you from? | I'm from {w}.\nask | Where is he from? | He's from {w}.\nask | Where is she from? | She's from {w}.\n\n# Unit 2 - Giờ\n⏰ | o'clock\n🕧 | half past\ntime | What time is it? | It's {t}.\ntime | What time do you get up? | I get up at {t}.\ntime | What time do you go to school? | I go to school at {t}.\ntime | What time do you go to bed? | I go to bed at {t}.\n\n# Unit 3 - Thứ trong tuần\n🌙 | Monday\n🔥 | Tuesday\n🐫 | Wednesday\n⚡ | Thursday\n🎉 | Friday\n⚽ | Saturday\n☀️ | Sunday\nseq | Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday\nask | What day is it today? | It's {w} today.\n\n# Unit 3 - Việc làm trong tuần\n📚 | study at school | Mondays\n🏠 | stay at home | Sundays\nask | What do you do on {v}? | I {w} on {v}.\n\n# Unit 4 - Tháng\n🎆 | January\n💝 | February\n🌷 | March\n🌧️ | April\n🌺 | May\n🏖️ | June\n🍉 | July\n🌻 | August\n🏫 | September\n🎃 | October\n🍂 | November\n🎄 | December\nseq | January | February | March | April | May | June | July | August | September | October | November | December\nask | When's your birthday? | It's in {w}.\n\n# Unit 5 - Khả năng\n🍳 | cook a meal\n🎨 | draw a picture\n🤸 | jump rope\n🎤 | sing a song\n🛼 | roller skate\n🎹 | play the piano\n🎸 | play the guitar\nask | What can you do? | I can {w}.\nyesno | Can you {w}? | Yes, I can. | No, I can't. | I can\nyesno | Can {he} {w}? | Yes, {he} can. | No, {he} can't. | {name} can\n", "showText": false}</script>
+<script id="app-js">
+/* =====================================================================
+   Treasure Hunt: a pirate board game. Roll the dice, sail, answer questions.
+   The words come from words.txt (same format as Word Adventure / Word Rush,
+   plus two extra lines: "numbers | 11 | 100" and "age | question | answer").
+   ===================================================================== */
+function $(id){ return document.getElementById(id); }
+var app = $('app');
+var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function sample(a,n){ return shuffle(a).slice(0,n); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uniq(a){ var o=[]; a.forEach(function(x){ if(o.indexOf(x)<0) o.push(x); }); return o; }
+function art(s){ return /^[aeiou]/i.test(s) ? 'an' : 'a'; }
+var canSpeak = ('speechSynthesis' in window) && (typeof SpeechSynthesisUtterance !== 'undefined');
+function say(t){
+  try{
+    if (!canSpeak || (P && P.muted)) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=.88; window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+var ac = null;
+function tone(seq){
+  try{
+    if (P && P.muted) return;
+    var AC = window.AudioContext || window.webkitAudioContext; if(!AC) return;
+    ac = ac || new AC();
+    var t = ac.currentTime;
+    seq.forEach(function(p){
+      var o=ac.createOscillator(), g=ac.createGain();
+      o.type='triangle'; o.frequency.value=p[0];
+      g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.16,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+p[1]);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+p[1]+.02); t+=p[1];
+    });
+  }catch(e){}
+}
+function okS(){ tone([[660,.08],[880,.14]]); }
+function badS(){ tone([[300,.14],[230,.2]]); }
+function coinS(){ tone([[988,.06],[1319,.12]]); }
+function burst(emojis, n){
+  if (reduce) return;
+  n = n || 16;
+  for (var i=0;i<n;i++){
+    (function(){
+      var s = document.createElement('span');
+      s.className='pop'; s.textContent = pick(emojis);
+      s.style.left = (30+Math.random()*40)+'vw'; s.style.top = '55vh';
+      document.body.appendChild(s);
+      var dx = (Math.random()-.5)*320, dy = -(120+Math.random()*260), d = 1000+Math.random()*500;
+      void s.offsetWidth;
+      s.style.transition = 'transform '+d+'ms ease-out, opacity '+d+'ms ease-out';
+      s.style.transform = 'translate('+dx+'px,'+dy+'px) rotate('+(Math.random()*360)+'deg)';
+      s.style.opacity = '0';
+      setTimeout(function(){ if (s.parentNode) s.parentNode.removeChild(s); }, d+120);
+    })();
+  }
+}
+function floatText(text){
+  var s = document.createElement('div');
+  s.className = 'float'; s.textContent = vi(text);
+  document.body.appendChild(s);
+  void s.offsetWidth;
+  s.style.transition = 'transform .9s ease-out, opacity .9s ease-out';
+  s.style.transform = 'translate(-50%,-60px)'; s.style.opacity = '0';
+  setTimeout(function(){ if (s.parentNode) s.parentNode.removeChild(s); }, 1000);
+}
+
+/* ---------- numbers ---------- */
+var ONES = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+var TENS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function numWord(n){
+  if (n < 20) return ONES[n];
+  if (n < 100){ var t = Math.floor(n/10), u = n % 10; return TENS[t] + (u ? '-' + ONES[u] : ''); }
+  if (n === 100) return 'one hundred';
+  return String(n);
+}
+function numDistractors(n, lo, hi, count){
+  var c = [];
+  function add(x){ if (x >= lo && x <= hi && x !== n && c.indexOf(x) < 0) c.push(x); }
+  if (n >= 13 && n <= 19) add((n-10)*10);                                  /* 13 / 30 */
+  if (n >= 30 && n <= 90 && n % 10 === 0) add(n/10 + 10);                  /* 30 / 13 */
+  if (n >= 21 && n <= 99 && n % 11 !== 0 && n % 10 !== 0) add((n%10)*10 + Math.floor(n/10));  /* 37 / 73 */
+  add(n+1); add(n-1); add(n+10); add(n-10); add(n+2); add(n-2);
+  var near = c.slice(0, 5), out = sample(near, count);
+  var guard = 0;
+  while (out.length < count && guard++ < 60){
+    var r = lo + Math.floor(Math.random() * (hi - lo + 1));
+    if (r !== n && out.indexOf(r) < 0) out.push(r);
+  }
+  return out;
+}
+
+/* ---------- the word list ---------- */
+function isEmoji(s){ return /[^\x00-\x7F]/.test(s) && !/[A-Za-z0-9]/.test(s); }
+var KIDS = [{n:'Mai',e:'👧',g:'she'},{n:'Nam',e:'👦',g:'he'},{n:'Lan',e:'👩',g:'she'},{n:'Tom',e:'🧒',g:'he'}];
+function kidTpl(s, k){ return String(s).replace(/\{name\}/g, k.n).replace(/\{He\}/g, k.g==='she' ? 'She' : 'He').replace(/\{he\}/g, k.g); }
+function parseDeck(src){
+  var d = {groups:[], words:[], warnings:[], nums:null, ages:[]};
+  var g = null;
+  function warn(n, m){ d.warnings.push('Dòng '+n+': '+m); }
+  function mk(name){ return {name:name, words:[], pats:[], nums:null, ages:[], times:[], seqs:[]}; }
+  function ensure(){ if(!g){ g = mk('Words'); d.groups.push(g); } return g; }
+  String(src||'').split(/\r?\n/).forEach(function(raw, i){
+    var ln = raw.trim(), n = i+1;
+    if (!ln || ln.indexOf('//') === 0) return;
+    if (ln.charAt(0) === '#'){ g = mk(ln.replace(/^#+\s*/,'').trim() || 'Group'); d.groups.push(g); return; }
+    var f = ln.split(/[|｜]/).map(function(s){ return s.trim(); });
+    var k = f[0].toLowerCase();
+    if (k === 'tip') return;
+    if (k === 'numbers'){
+      var lo = parseInt(f[1], 10), hi = parseInt(f[2], 10);
+      if (isNaN(lo)) lo = 11; if (isNaN(hi)) hi = 100;
+      lo = Math.max(1, Math.min(lo, 99)); hi = Math.max(lo + 3, Math.min(hi, 100));
+      ensure().nums = {min:lo, max:hi}; return;
+    }
+    if (k === 'age'){
+      if (!f[1] || !f[2] || f[2].indexOf('{n}') < 0) return warn(n, 'age cần: câu hỏi | câu trả lời có {n}');
+      ensure().ages.push({q:f[1], a:f[2]}); return;
+    }
+    if (k === 'time'){
+      if (!f[1] || !f[2] || f[2].indexOf('{t}') < 0) return warn(n, 'time cần: câu hỏi | câu trả lời có {t}');
+      ensure().times.push({q:f[1], a:f[2]}); return;
+    }
+    if (k === 'seq'){
+      var it = f.slice(1).filter(Boolean);
+      if (it.length < 4) return warn(n, 'seq cần ít nhất 4 mục');
+      ensure().seqs.push(it); return;
+    }
+    if (k === 'ask' || k === 'do' || k === 'yesno'){
+      if (k === 'ask'){
+        if (!f[1] || !f[2]) return warn(n, 'ask cần 2 phần: câu hỏi | câu trả lời');
+        if (!/\{(w|W|pl|v)\}/.test(f[2])) return warn(n, 'câu trả lời của ask cần có {w} hoặc {pl}');
+        ensure().pats.push({kind:'ask', q:f[1], a:f[2]});
+      } else if (k === 'do'){
+        if (!f[1] || !/\{(w|W|pl|v)\}/.test(f[1])) return warn(n, 'do cần có {w} hoặc {v} trong câu');
+        ensure().pats.push({kind:'do', q:f[1]});
+      } else {
+        if (!f[1]) return warn(n, 'yesno cần câu hỏi');
+        ensure().pats.push({kind:'yesno', q:f[1], yes:f[2]||"Yes, I do.", no:f[3]||"No, I don't.", bub:f[4]||'I like'});
+      }
+      return;
+    }
+    var e, w;
+    if (f.length >= 2 && f[0] && f[1]){
+      if (isEmoji(f[0])){ e=f[0]; w=f[1]; }
+      else if (isEmoji(f[1])){ e=f[1]; w=f[0]; }
+      else { e='❓'; w=f[0]; warn(n, 'thiếu emoji cho "'+w+'"'); }
+    } else if (f.length === 1 && f[0]){
+      if (isEmoji(f[0])) return warn(n, 'có emoji nhưng thiếu từ');
+      e='❓'; w=f[0]; warn(n, 'thiếu emoji cho "'+w+'"');
+    } else return warn(n, 'không hiểu dòng này');
+    var parts = w.split('/'), sg = parts[0].trim(), pl = (parts[1]||'').trim();
+    if (!sg) return warn(n, 'từ bị trống');
+    var extra = f.length >= 3 ? f[2] : '';
+    var nopat = (extra === '-');
+    var gg = ensure();
+    var word = {key:(sg+(pl?'/'+pl:'')).toLowerCase(), w:(pl ? sg+' / '+pl : sg), e:e, sg:sg, pl:pl, v:(nopat ? '' : extra), nopat:nopat,
+                say:(pl ? sg+'. '+pl+'.' : sg), spell:sg, pats:gg.pats, group:gg};
+    gg.words.push(word); d.words.push(word);
+  });
+  d.groups = d.groups.filter(function(x){ return x.words.length || x.nums || x.ages.length || x.times.length || x.seqs.length; });
+  d.groups.forEach(function(x){ if (x.nums && !d.nums) d.nums = x.nums; d.ages = d.ages.concat(x.ages); });
+  var seen = {};
+  d.words.forEach(function(w){ if (seen[w.key]) d.warnings.push('Từ bị trùng: "'+w.sg+'"'); seen[w.key] = 1; });
+  return d;
+}
+function tpl(s, w, artOverride){
+  return s.replace(/\{W\}/g, w.sg.charAt(0).toUpperCase() + w.sg.slice(1)).replace(/\{w\}/g, w.sg).replace(/\{pl\}/g, w.pl)
+          .replace(/\{a\}/g, artOverride || art(w.sg)).replace(/\{v\}/g, w.v || '');
+}
+function patValid(p, w){
+  if (w.nopat) return false;
+  var s = p.q + ' ' + (p.a || '');
+  if (/\{v\}/.test(s) && !w.v) return false;
+  if (/\{pl\}/.test(s) && !w.pl) return false;
+  return true;
+}
+function patsFor(kind, w){ return w.pats.filter(function(p){ return p.kind===kind && patValid(p, w); }); }
+
+var DECK;
+try{ DECK = JSON.parse($('deck-data').textContent); }catch(e){ DECK = null; }
+if (!DECK || typeof DECK.source !== 'string') DECK = {v:1, title:'Treasure Hunt', source:'', showText:false};
+var D = parseDeck(DECK.source);
+function useDeck(deck){ DECK = deck; D = parseDeck(deck.source); }
+function applyWordsTxt(text){
+  var title = DECK.title, showText = DECK.showText, lines = [];
+  String(text || '').split(/\r?\n/).forEach(function(ln){
+    var m = ln.trim().match(/^@(\w+)\s*(.*)$/);
+    if (m){
+      var k = m[1].toLowerCase(), v = m[2].trim();
+      if (k === 'title' && v) title = v;
+      else if (k === 'showtext') showText = /^(on|yes|1|true)$/i.test(v);
+    } else lines.push(ln);
+  });
+  var src = lines.join('\n'), d = parseDeck(src);
+  if (d.words.length < 2 && !d.nums) return false;
+  useDeck({v:1, title:title, source:src, showText:showText});
+  return true;
+}
+
+/* ---------- progress (kept on the child's device) ---------- */
+var KEY = 'treasurehunt-v1';
+var RANKS = [
+  {need:0,    e:'🧒', n:'Cabin boy'},
+  {need:100,  e:'🧹', n:'Deckhand'},
+  {need:300,  e:'⚓', n:'Sailor'},
+  {need:600,  e:'🧭', n:'First mate'},
+  {need:1000, e:'🦜', n:'Captain'},
+  {need:1800, e:'🏴‍☠️', n:'Pirate king'}
+];
+var SHIPS = [
+  {need:0,    e:'🛶', n:'Canoe'},
+  {need:150,  e:'⛵', n:'Sailboat'},
+  {need:400,  e:'🚤', n:'Speedboat'},
+  {need:800,  e:'🛥️', n:'Yacht'},
+  {need:1500, e:'🚢', n:'Pirate ship'}
+];
+function freshP(){ return {gold:0, gems:0, runs:0, bestTreasure:0, ship:'🛶', mastery:{}, nmast:{}, sel:'all', len:28, muted:false}; }
+function loadP(){
+  try{
+    var s = JSON.parse(localStorage.getItem(KEY));
+    if (s && typeof s === 'object'){ var f = freshP(); for (var k in f){ if (s[k] === undefined) s[k] = f[k]; } return s; }
+  }catch(e){}
+  return freshP();
+}
+function saveP(){ try{ localStorage.setItem(KEY, JSON.stringify(P)); }catch(e){} }
+var P = loadP();
+function mast(w){ return P.mastery[w.key] || 0; }
+function rankOf(g){ var r = RANKS[0]; RANKS.forEach(function(x){ if (g >= x.need) r = x; }); return r; }
+function nextRank(g){ for (var i=0;i<RANKS.length;i++){ if (RANKS[i].need > g) return RANKS[i]; } return null; }
+function starsStr(n){ return '★'.repeat(n) + '☆'.repeat(3-n); }
+function lvlOf(w){ var m = mast(w); return m>=5?3 : m>=3?2 : m>=1?1 : 0; }
+
+/* ---------- Vietnamese UI layer: only interface text is translated, the English questions stay English ---------- */
+var VI = [
+["No words yet. Ask your teacher to add some!","Chưa có từ vựng. Nhờ cô giáo thêm từ nhé!"],["⚙️ Add words","⚙️ Thêm từ"],
+[" more gold to become "," vàng nữa để lên cấp "],["You are the Pirate king!","Bạn là Vua hải tặc!"],["Best treasure: ","Kho báu nhiều nhất: "],
+["⚓ Set sail!","⚓ Ra khơi!"],["Voyage:","Chuyến đi:"],[">Short<",">Ngắn<"],[">Medium<",">Vừa<"],[">Long<",">Dài<"],
+["All topics","Tất cả chủ đề"],["🚢 Ships","🚢 Tàu"],["📒 Words","📒 Từ vựng"],["Map key","Chú giải"],
+["🔇 Sound is off (tap to turn on)","🔇 Đang tắt âm thanh (bấm để bật)"],["🔊 Sound is on (tap to turn off)","🔊 Đang bật âm thanh (bấm để tắt)"],
+["⚙️ Teacher: edit words","⚙️ Giáo viên: sửa từ"],["← Back","← Quay lại"],["Your ships","Tàu của bạn"],
+["Win gold to unlock new ships. Tap one to sail it!","Thắng vàng để mở khóa tàu mới. Bấm vào tàu để chọn!"],["Pirate ranks","Cấp bậc hải tặc"],["Voyages: ","Số chuyến đi: "],
+["Cabin boy","Thủy thủ nhí"],["Deckhand","Thủy thủ boong"],["Sailor","Thủy thủ"],["First mate","Thuyền phó"],["Captain","Thuyền trưởng"],["Pirate king","Vua hải tặc"],
+["Canoe","Xuồng"],["Sailboat","Thuyền buồm"],["Speedboat","Ca nô"],["Yacht","Du thuyền"],["Pirate ship","Tàu hải tặc"],
+[" words<"," từ<"],["My words","Từ vựng của tôi"],["Answer questions about a word to earn its stars!","Trả lời câu hỏi về một từ để nhận sao nhé!"],
+["Port: where your voyage starts","Bến cảng: nơi bắt đầu chuyến đi"],["Treasure Island: answer 3 questions to open the chest!","Đảo Kho Báu: trả lời 3 câu để mở rương!"],
+["Question: answer to win gold","Câu hỏi: trả lời đúng để nhận vàng"],["Coins: free gold","Đồng xu: vàng miễn phí"],["Chest: a surprise prize","Rương: phần quà bất ngờ"],
+["Parrot: a hint for a hard question","Vẹt: gợi ý cho câu khó"],["Storm: answer to calm it, or sail back 3","Bão: trả lời đúng để dẹp bão, sai thì lùi 3 ô"],
+["Shark: answer or lose 8 gold","Cá mập: trả lời đúng để đuổi nó, sai thì mất 8 vàng"],["Whirlpool: it spins your ship!","Xoáy nước: làm tàu quay vòng vòng!"],
+["Pirate battle: win 2 of 3 questions","Đánh hải tặc: đúng 2 trong 3 câu là thắng"],["Lucky clover: roll again","Cỏ may mắn: quay thêm lượt nữa"],["Got it!","Đã hiểu!"],
+["Leave the voyage?","Thoát chuyến đi?"],["Your treasure from this voyage will be lost.","Kho báu của chuyến đi này sẽ mất."],["Keep sailing","Đi tiếp"],[">Leave<",">Thoát<"],
+["Roll the dice to start your voyage!","Quay xúc xắc để bắt đầu chuyến đi!"],["🎲 Roll!","🎲 Quay!"],["You rolled ","Bạn quay được "],["Roll the dice again!","Quay xúc xắc lần nữa!"],
+["Roll the dice!","Quay xúc xắc nào!"],["Roll again!","Quay thêm lượt nữa!"],["Roll!","Quay!"],["A question!","Có câu hỏi!"],["Answer to win gold!","Trả lời đúng để nhận vàng!"],
+["Great!","Giỏi lắm!"],["Not quite!","Chưa đúng!"],["Gold coins!","Đồng xu vàng!"],["You found a pile of gold.","Bạn tìm thấy một đống vàng."],
+["Your parrot is here!","Chú vẹt của bạn đến rồi!"],["Squawk! Hint +1. Use it on a hard question to remove two wrong answers.","Quạc! Nhận thêm 1 gợi ý. Dùng cho câu khó để loại 2 đáp án sai."],["Thanks!","Cảm ơn!"],
+["Lucky clover!","Cỏ may mắn!"],["Treasure chest!","Rương kho báu!"],["You found 20 gold!","Bạn tìm thấy 20 vàng!"],["Wow!","Ôi chao!"],["A sparkling gem!","Một viên ngọc lấp lánh!"],
+["Two parrot hints!","Hai gợi ý của vẹt!"],["A magic wind! Move forward 2 squares.","Gió thần thổi tới! Tiến lên 2 ô."],["Sail!","Ra khơi!"],["Whirlpool!","Xoáy nước!"],
+["Hold on! The water spins your ship...","Bám chắc nào! Nước xoáy quay con tàu của bạn..."],["Spin!","Quay!"],["The whirlpool took you to square ","Xoáy nước đưa bạn đến ô "],
+["Storm!","Bão!"],["Answer a question to calm the sea. If not, you sail back 3 squares!","Trả lời một câu để dẹp yên biển. Nếu sai, bạn lùi 3 ô!"],["I can do it!","Mình làm được!"],
+["⛈️ Calm the storm!","⛈️ Dẹp bão nào!"],["The sea is calm!","Biển đã yên!"],["The storm pushes you back!","Cơn bão đẩy bạn lùi lại!"],
+["Shark attack!","Cá mập tấn công!"],["Answer correctly to scare it away and win 15 gold. If not, you lose 8 gold!","Trả lời đúng để đuổi cá mập và nhận 15 vàng. Nếu sai, bạn mất 8 vàng!"],
+["Brave!","Dũng cảm!"],["🦈 Scare the shark!","🦈 Đuổi cá mập!"],["The shark swims away!","Cá mập bơi đi rồi!"],["Chomp!","Ngoạm!"],
+["Pirate battle!","Đánh hải tặc!"],["Answer 3 questions. Win 2 and you beat the pirates!","Trả lời 3 câu. Đúng 2 câu là bạn thắng hải tặc!"],["Fight!","Chiến nào!"],
+["You win the battle!","Bạn thắng trận!"],["The pirates run away and leave 25 gold and a gem!","Hải tặc bỏ chạy và để lại 25 vàng cùng một viên ngọc!"],["Hooray!","Hoan hô!"],
+["The pirates won this time","Lần này hải tặc thắng"],["They take 8 gold. Try again next time!","Chúng lấy 8 vàng. Lần sau cố lên nhé!"],
+["⚔️ Battle ","⚔️ Trận "],[" of 3 · hits: "," trên 3 · trúng: "],["Direct hit!","Trúng đòn!"],["Missed!","Trượt rồi!"],
+["Treasure Island!","Đảo Kho Báu!"],["Answer 3 questions to open the treasure chest. Each correct answer gives you a gem!","Trả lời 3 câu để mở rương kho báu. Mỗi câu đúng được một viên ngọc!"],
+["Open the chest!","Mở rương nào!"],["Chest lock ","Ổ khóa rương "],[" of 3"," / 3"],["Click!","Cạch!"],["Stuck!","Kẹt rồi!"],
+["You opened the chest!","Bạn đã mở được rương!"],["You found the treasure!","Bạn đã tìm thấy kho báu!"],["🌟 New best treasure!","🌟 Kỷ lục kho báu mới!"],
+[" gems<"," ngọc<"],["best streak ","chuỗi đúng dài nhất "],[" rolls<"," lượt quay<"],["New rank: ","Cấp bậc mới: "],["New ship unlocked: ","Mở khóa tàu mới: "],
+["total 💰","tổng 💰"],["⚓ Sail again","⚓ Ra khơi lần nữa"],[">Home<",">Về trang chủ<"],
+["🎧 Listen","🎧 Nghe"],["🔢 Listen","🔢 Nghe số"],["🖼️ What is it?","🖼️ Đây là gì?"],["🔤 Spell it","🔤 Xếp chữ"],["✅ True or false?","✅ Đúng hay sai?"],
+["🧐 Odd one out","🧐 Tìm hình khác loại"],["💬 Answer","💬 Trả lời"],["🙋 Do it!","🙋 Làm theo!"],["💬 Talk","💬 Hội thoại"],["🔢 Numbers","🔢 Số"],
+["🔢 Count on","🔢 Đếm tiếp"],["🎂 How old?","🎂 Mấy tuổi?"],["Which picture is it?","Hình nào đúng?"],["Put the words in order.","Xếp các từ cho đúng thứ tự."],
+["Tap the letters to spell it.","Bấm các chữ cái để ghép thành từ."],["Is the word right for the picture?","Từ này có đúng với hình không?"],["✅ Yes","✅ Đúng"],["❌ No","❌ Sai"],
+["Which one is different?","Hình nào khác loại?"],["Tap the right picture!","Bấm vào hình đúng nhé!"],["Look at ","Hãy nhìn "],["Answer as ","Hãy trả lời giúp "],
+["How do you say it?","Đọc số này thế nào?"],["Which number is it?","Đó là số nào?"],["What number is missing?","Số nào còn thiếu?"],
+["🔊 Listen again","🔊 Nghe lại"],["🦜 Hint (","🦜 Gợi ý ("],["Continue →","Tiếp tục →"],[" gold"," vàng"]
+];
+VI.sort(function(a, b){ return b[0].length - a[0].length; });
+function vi(t){ t = String(t); for (var i = 0; i < VI.length; i++){ t = t.split(VI[i][0]).join(VI[i][1]); } return t; }
+
+/* ---------- screens ---------- */
+var screen = 'home', isTeacher = false, G = null, Qc = null, evtCb = null;
+function go(html){ app.innerHTML = vi(html); window.scrollTo(0,0); }
+function closeModal(){ var m=$('modal'); m.classList.remove('on'); m.innerHTML=''; }
+function openModal(html){ var m=$('modal'); m.innerHTML = '<div class="mcard">'+vi(html)+'</div>'; m.classList.add('on'); }
+
+function selGroups(){
+  if (D.groups.length < 2) return '';
+  return '<div class="chips"><button class="btn '+(P.sel==='all'?'sel':'')+'" onclick="setSel(\'all\')">All topics</button>'+
+    D.groups.map(function(g,i){ return '<button class="btn '+(P.sel===g.name?'sel':'')+'" onclick="setSel('+i+')">'+esc(g.name)+'</button>'; }).join('')+'</div>';
+}
+function setSel(i){ P.sel = (i==='all') ? 'all' : D.groups[i].name; saveP(); home(); }
+function setLen(n){ P.len = n; saveP(); home(); }
+function toggleMute(){ P.muted = !P.muted; saveP(); home(); }
+
+function home(){
+  screen = 'home'; closeModal(); G = null; Qc = null;
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  if (D.words.length < 2){
+    go('<div class="panel center"><div class="ship">🏴‍☠️</div><h1>'+esc(DECK.title||'Treasure Hunt')+'</h1><p class="hint">No words yet. Ask your teacher to add some!</p>'+(isTeacher ? '<button class="btn gold big" onclick="openEditor()">⚙️ Add words</button>' : '')+'</div>');
+    return;
+  }
+  var r = rankOf(P.gold), nr = nextRank(P.gold);
+  var pct = nr ? Math.round((P.gold - r.need) / (nr.need - r.need) * 100) : 100;
+  go('<div class="panel hero center">'+
+      '<div class="ship" aria-hidden="true">'+P.ship+'</div>'+
+      '<h1>'+esc(DECK.title||'Treasure Hunt')+'</h1>'+
+      '<p class="sub2">'+r.e+' '+r.n+' · 💰 '+P.gold+' · 💎 '+P.gems+'</p>'+
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
+      '<small>'+(nr ? ((nr.need - P.gold)+' more gold to become '+nr.n+'!') : 'You are the Pirate king! 👑')+'</small>'+
+      (P.bestTreasure ? '<small>Best treasure: '+P.bestTreasure+'</small>' : '')+
+    '</div>'+
+    '<div class="stack"><button class="btn gold big" onclick="startVoyage()">⚓ Set sail!</button></div>'+
+    '<div class="chips"><span class="hint" style="margin:6px 8px">Voyage:</span>'+
+      [[20,'Short'],[28,'Medium'],[36,'Long']].map(function(x){ return '<button class="btn '+(P.len===x[0]?'sel':'')+'" onclick="setLen('+x[0]+')">'+x[1]+'</button>'; }).join('')+'</div>'+
+    selGroups()+
+    '<div class="grid3" style="margin-top:12px"><button class="btn" onclick="showShips()">🚢 Ships</button><button class="btn" onclick="showWords()">📒 Words</button><button class="btn" onclick="showKey(true)">🗺️ Map key</button></div>'+
+    '<div class="foot"><button class="link" onclick="toggleMute()">'+(P.muted ? '🔇 Sound is off (tap to turn on)' : '🔊 Sound is on (tap to turn off)')+'</button>'+
+    (isTeacher ? '<br><button class="link" onclick="openEditor()">⚙️ Teacher: edit words</button>' : '')+'</div>');
+}
+
+function showShips(){
+  screen = 'ships';
+  var ships = SHIPS.map(function(s){
+    var has = P.gold >= s.need;
+    return has ? '<button class="sh '+(P.ship===s.e?'on':'')+'" onclick="setShip(\''+s.e+'\')"><span class="em">'+s.e+'</span>'+s.n+'</button>'
+               : '<div class="sh lock"><span class="em">🔒</span>'+s.need+' gold</div>';
+  }).join('');
+  var ranks = RANKS.map(function(r){
+    var has = P.gold >= r.need;
+    return '<div class="rank '+(has?'':'lock')+'"><span>'+r.e+' '+r.n+'</span><span>'+(has ? '✓' : r.need+' 💰')+'</span></div>';
+  }).join('');
+  go('<div class="top"><button class="btn" onclick="home()">← Back</button><div class="pill">💰 '+P.gold+'</div><div class="pill">💎 '+P.gems+'</div></div>'+
+    '<div class="panel center"><h2>Your ships 🚢</h2><p class="hint" style="margin-bottom:0">Win gold to unlock new ships. Tap one to sail it!</p><div class="shipsel">'+ships+'</div>'+
+    '<h2 style="margin-top:16px">Pirate ranks 🏴‍☠️</h2>'+ranks+
+    '<p class="hint">Voyages: '+P.runs+'</p></div>');
+}
+function setShip(e){ P.ship = e; saveP(); showShips(); }
+
+function showWords(){
+  screen = 'words';
+  var learned = D.words.filter(function(w){ return mast(w) >= 1; }).length;
+  var secs = D.groups.filter(function(g){ return g.words.length; }).map(function(g){
+    var cards = g.words.map(function(w){
+      return mast(w) < 1
+        ? '<div class="stk lock"><span class="em">'+w.e+'</span><b>? ? ?</b><span>☆☆☆</span></div>'
+        : '<button class="stk" data-say="'+esc(w.say)+'" onclick="say(this.getAttribute(\'data-say\'))"><span class="em">'+w.e+'</span><b>'+esc(w.w)+'</b><span>'+starsStr(lvlOf(w))+'</span></button>';
+    }).join('');
+    return '<h2 style="text-align:left;margin:14px 0 0;font-size:1.1rem">'+esc(g.name)+'</h2><div class="grid3" style="margin-top:8px">'+cards+'</div>';
+  }).join('');
+  go('<div class="top"><button class="btn" onclick="home()">← Back</button><div class="pill">'+learned+' / '+D.words.length+' words</div></div>'+
+    '<div class="panel center"><h2>My words 📒</h2><p class="hint" style="margin-bottom:0">Answer questions about a word to earn its stars!</p>'+secs+'</div>');
+}
+
+var SQT = {
+  start: {ic:'⚓',  bg:'#D7F0FF', nm:'Port: where your voyage starts'},
+  end:   {ic:'🏝️', bg:'#FFE680', nm:'Treasure Island: answer 3 questions to open the chest!'},
+  q:     {ic:'❓', bg:'#FFF3C4', nm:'Question: answer to win gold'},
+  coin:  {ic:'💰', bg:'#FFE066', nm:'Coins: free gold'},
+  chest: {ic:'🎁', bg:'#FFB347', nm:'Chest: a surprise prize'},
+  parrot:{ic:'🦜', bg:'#B5F0A8', nm:'Parrot: a hint for a hard question'},
+  storm: {ic:'⛈️', bg:'#B8C4D6', nm:'Storm: answer to calm it, or sail back 3'},
+  shark: {ic:'🦈', bg:'#A9CBEA', nm:'Shark: answer or lose 8 gold'},
+  whirl: {ic:'🌀', bg:'#CDB8FF', nm:'Whirlpool: it spins your ship!'},
+  pirate:{ic:'🏴‍☠️', bg:'#FF9E94', nm:'Pirate battle: win 2 of 3 questions'},
+  lucky: {ic:'🍀', bg:'#FFD1F2', nm:'Lucky clover: roll again'}
+};
+function showKey(fromHome){
+  var rows = ['start','end','q','coin','chest','parrot','storm','shark','whirl','pirate','lucky'].map(function(k){
+    return '<div><span class="ic">'+SQT[k].ic+'</span>'+esc(SQT[k].nm)+'</div>';
+  }).join('');
+  openModal('<h2>Map key 🗺️</h2><div class="legend">'+rows+'</div><button class="btn gold big" onclick="closeModal()">Got it!</button>');
+}
+
+/* ---------- questions ---------- */
+function showTextOn(){ return !!DECK.showText || !canSpeak; }
+function curPool(){
+  var gs = (P.sel === 'all') ? D.groups : D.groups.filter(function(g){ return g.name === P.sel; });
+  if (!gs.length) gs = D.groups;
+  var words = [], nums = null, ages = [], times = [], seqs = [];
+  gs.forEach(function(g){ words = words.concat(g.words); if (g.nums) nums = g.nums; ages = ages.concat(g.ages); times = times.concat(g.times); seqs = seqs.concat(g.seqs); });
+  if (words.length < 2 && !nums && !times.length && !seqs.length) { words = D.words; nums = D.nums; ages = D.ages; }
+  return {words:words, nums:nums, ages:ages, times:times, seqs:seqs, groups:gs};
+}
+function weightedWord(ws){
+  var bag = [];
+  ws.forEach(function(w){ var k = Math.max(1, 6 - mast(w)); for (var i=0;i<k;i++) bag.push(w); });
+  return pick(bag);
+}
+function picOpts(w, n){
+  var same = w.group.words.filter(function(x){ return x !== w && x.e !== w.e; });
+  var others = D.words.filter(function(x){ return x !== w && x.e !== w.e && same.indexOf(x) < 0; });
+  var cand = shuffle(same).concat(shuffle(others)), res = [w];
+  cand.forEach(function(x){ if (res.length < n && !res.some(function(y){ return y.e === x.e; })) res.push(x); });
+  return shuffle(res);
+}
+function textOpts(w, n){
+  var same = w.group.words.filter(function(x){ return x !== w && x.w !== w.w; });
+  var others = D.words.filter(function(x){ return x !== w && x.w !== w.w && same.indexOf(x) < 0; });
+  var res = [w];
+  shuffle(same).concat(shuffle(others)).forEach(function(x){ if (res.length < n && !res.some(function(y){ return y.w === x.w; })) res.push(x); });
+  return shuffle(res);
+}
+function wordTag(w){ return showTextOn() ? '<div><span class="wordtag">'+esc(w.w)+'</span></div>' : ''; }
+
+function qListen(w){
+  return {kind:'choice', badge:'🎧 Listen', speak:w.say, layout:'pics', subject:w, answer:w.e+' '+w.w,
+    prompt:wordTag(w)+'<div class="hint" style="margin:4px 0">Which picture is it?</div>',
+    opts:picOpts(w,4).map(function(o){ return {html:'<span class="em">'+o.e+'</span>', ok:o===w}; })};
+}
+function qPic2Word(w){
+  return {kind:'choice', badge:'🖼️ What is it?', layout:'text', subject:w, answer:w.e+' '+w.w,
+    prompt:'<div class="bigem">'+w.e+'</div>',
+    opts:textOpts(w,4).map(function(o){ return {html:esc(o.w), ok:o===w}; })};
+}
+function qSpell(w){
+  var words = w.spell.indexOf(' ') >= 0;
+  var parts = words ? w.spell.split(/\s+/) : w.spell.split('');
+  var tokens = parts.map(function(t,i){ return {id:i, t:t}; });
+  var pool = shuffle(tokens), g = 0;
+  while (pool.length > 1 && pool.every(function(x,i){ return x.id === i; }) && g++ < 20) pool = shuffle(tokens);
+  return {kind:'spell', badge:'🔤 Spell it', speak:w.say, subject:w, answer:w.spell, words:words, tokens:tokens, pool0:pool,
+    prompt:'<div class="bigem">'+w.e+'</div><div class="hint" style="margin:2px 0">'+(words ? 'Put the words in order.' : 'Tap the letters to spell it.')+'</div>'};
+}
+function qTF(w){
+  var same = w.group.words.filter(function(x){ return x !== w && x.e !== w.e; });
+  if (!same.length) same = D.words.filter(function(x){ return x !== w && x.e !== w.e; });
+  var right = Math.random() < .5 || !same.length;
+  var shown = right ? w : pick(same);
+  return {kind:'choice', badge:'✅ True or false?', layout:'yn', subject:w, answer:w.e+' = '+w.w,
+    prompt:'<div class="bigem">'+w.e+'</div><div class="cmd" style="margin:2px 0">“'+esc(shown.w)+'”</div><div class="hint" style="margin:2px 0">Is the word right for the picture?</div>',
+    opts:[{html:'✅ Yes', ok:right},{html:'❌ No', ok:!right}]};
+}
+function qOdd(pool){
+  var gs = D.groups.filter(function(g){ return uniq(g.words.map(function(w){ return w.e; })).length >= 3; });
+  if (gs.length < 2) return null;
+  var g1 = pick(gs), others = gs.filter(function(g){ return g !== g1; }), g2 = pick(others);
+  var three = [], used = {};
+  shuffle(g1.words).forEach(function(w){ if (three.length < 3 && !used[w.e]){ three.push(w); used[w.e] = 1; } });
+  var odd = pick(g2.words.filter(function(w){ return !used[w.e]; }));
+  if (three.length < 3 || !odd) return null;
+  return {kind:'choice', badge:'🧐 Odd one out', layout:'pics', subject:odd, answer:odd.e+' '+odd.w+' is different',
+    prompt:'<div class="hint" style="margin:4px 0">Which one is different?</div>',
+    opts:shuffle(three.concat([odd])).map(function(o){ return {html:'<span class="em">'+o.e+'</span><span class="lb">'+esc(o.sg)+'</span>', ok:o===odd}; })};
+}
+function qAsk(w){
+  var pa = pick(patsFor('ask', w));
+  var q = tpl(pa.q, w), ans = tpl(pa.a, w);
+  var plural = /\{pl\}/.test(pa.a) && !/\{w\}/.test(pa.a);
+  var opts = [ans];
+  if (/\{a\}/.test(pa.a)){ var wrong = tpl(pa.a, w, art(w.sg)==='an' ? 'a' : 'an'); if (wrong !== ans) opts.push(wrong); }
+  var pool = w.group.words.filter(function(x){ return x !== w; });
+  shuffle(pool).forEach(function(x){
+    if (opts.length >= 4 || !patValid(pa, x)) return;
+    var s2 = tpl(pa.a, x);
+    if (opts.indexOf(s2) < 0) opts.push(s2);
+  });
+  if (opts.length < 3){
+    shuffle(D.words).forEach(function(x){
+      if (opts.length >= 3 || x === w || !patValid(pa, x)) return;
+      var s3 = tpl(pa.a, x);
+      if (opts.indexOf(s3) < 0) opts.push(s3);
+    });
+  }
+  return {kind:'choice', badge:'💬 Answer', speak:q, layout:'sent', subject:w, answer:ans, speakAnswer:ans,
+    prompt:'<div class="bigem">'+(plural ? w.e+' '+w.e : w.e)+'</div><div class="cmd">'+esc(q)+'</div>',
+    opts:shuffle(opts).map(function(s){ return {html:esc(s), ok:s === ans}; })};
+}
+function qDo(w){
+  var p = pick(patsFor('do', w));
+  var text = tpl(p.q, w);
+  return {kind:'choice', badge:'🙋 Do it!', speak:text, layout:'pics', subject:w, answer:w.e+' '+text,
+    prompt:'<div class="cmd">'+esc(text)+'</div><div class="hint" style="margin:2px 0">Tap the right picture!</div>',
+    opts:picOpts(w,4).map(function(o){ return {html:'<span class="em">'+o.e+'</span><span class="lb">'+esc(o.sg)+'</span>', ok:o===w}; })};
+}
+function qYesNo(w){
+  var p = pick(patsFor('yesno', w));
+  var kid = pick(KIDS), yes = Math.random() < .5;
+  var others = w.group.words.filter(function(x){ return x !== w; });
+  if (others.length < 3) others = others.concat(shuffle(D.words.filter(function(x){ return x !== w && others.indexOf(x) < 0; })).slice(0, 3 - others.length));
+  var liked = yes ? shuffle([w].concat(sample(others, 2))) : sample(others, 3);
+  var third = /\{name\}/.test(p.bub || '');
+  var bub = kidTpl(p.bub || 'I like', kid);
+  var text = kidTpl(tpl(p.q, w), kid), yesT = kidTpl(tpl(p.yes, w), kid), noT = kidTpl(tpl(p.no, w), kid);
+  return {kind:'choice', badge:'💬 Talk', speak:text, layout:'yn', subject:w, answer:kid.n+': '+(yes ? yesT : noT),
+    prompt:'<div class="who"><span class="avatar">'+kid.e+'</span><div class="bubble">'+(third ? '' : 'I\'m '+kid.n+'. ')+esc(bub)+' '+liked.map(function(x){ return x.e; }).join(' ')+'</div></div>'+
+           '<div class="hint" style="margin:2px 0">'+(third ? 'Look at ' : 'Answer as ')+kid.n+'!</div>'+
+           '<div class="cmd">'+w.e+' '+esc(text)+'</div>',
+    opts:[{html:esc(yesT), ok:yes},{html:esc(noT), ok:!yes}]};
+}
+function qNumDigits(nums){
+  var n = nums.min + Math.floor(Math.random() * (nums.max - nums.min + 1));
+  if (P.nhard && P.nhard.length && Math.random() < .35){ var h = pick(P.nhard); if (h >= nums.min && h <= nums.max) n = h; }
+  var opts = [n].concat(numDistractors(n, nums.min, nums.max, 3));
+  return {kind:'choice', badge:'🔢 Numbers', speak:numWord(n), layout:'text', num:n, answer:n+' = '+numWord(n),
+    prompt:'<div class="bignum">'+n+'</div><div class="hint" style="margin:2px 0">How do you say it?</div>',
+    opts:shuffle(opts).map(function(m){ return {html:esc(numWord(m)), ok:m === n}; })};
+}
+function qNumListen(nums){
+  var n = nums.min + Math.floor(Math.random() * (nums.max - nums.min + 1));
+  if (P.nhard && P.nhard.length && Math.random() < .35){ var h = pick(P.nhard); if (h >= nums.min && h <= nums.max) n = h; }
+  var opts = [n].concat(numDistractors(n, nums.min, nums.max, 3));
+  return {kind:'choice', badge:'🔢 Listen', speak:numWord(n), layout:'text', num:n, answer:numWord(n)+' = '+n,
+    prompt:(showTextOn() ? '<div><span class="wordtag">'+esc(numWord(n))+'</span></div>' : '')+'<div class="hint" style="margin:4px 0">Which number is it?</div>',
+    opts:shuffle(opts).map(function(m){ return {html:'<span style="font-size:1.6rem">'+m+'</span>', ok:m === n}; })};
+}
+function qNumSeq(nums){
+  var step = 1;
+  if (nums.min <= 20 && nums.max >= 60 && Math.random() < .35) step = 10;
+  var starts = [];
+  for (var s = nums.min; s + step*3 <= nums.max; s++){ if (step === 1 || s % 10 === 0) starts.push(s); }
+  if (!starts.length){ step = 1; for (var s2 = nums.min; s2 + 3 <= nums.max; s2++) starts.push(s2); }
+  var start = pick(starts), seq = [start, start+step, start+step*2, start+step*3];
+  var miss = 1 + Math.floor(Math.random()*2), n = seq[miss];
+  var opts = [n].concat(numDistractors(n, nums.min, nums.max, 3));
+  var shown = seq.map(function(x, i){ return i === miss ? '__' : x; }).join(', ');
+  return {kind:'choice', badge:'🔢 Count on', speak:null, layout:'text', num:n, answer:seq.join(', '),
+    prompt:'<div class="bignum" style="font-size:2.4rem">'+shown+'</div><div class="hint" style="margin:2px 0">What number is missing?</div>',
+    opts:shuffle(opts).map(function(m){ return {html:'<span style="font-size:1.6rem">'+m+'</span>', ok:m === n}; })};
+}
+function ageTpl(s, kid, n){ return kidTpl(s, kid).replace(/\{n\}/g, numWord(n)); }
+function qAge(pool){
+  var pa = pick(pool.ages), kid = pick(KIDS), n = 5 + Math.floor(Math.random()*10);
+  var third = /\{(he|He|name)\}/.test(pa.q + ' ' + pa.a);
+  var text = ageTpl(pa.q, kid, n), ans = ageTpl(pa.a, kid, n);
+  var opts = [ans];
+  numDistractors(n, 3, 17, 5).forEach(function(m){ var s = ageTpl(pa.a, kid, m); if (opts.length < 4 && opts.indexOf(s) < 0) opts.push(s); });
+  return {kind:'choice', badge:'🎂 How old?', speak:text, layout:'sent', num:n, answer:ans, speakAnswer:ans,
+    prompt:(third ? '<div class="who"><span class="avatar">'+kid.e+'</span><div class="bubble">🎂 '+n+'</div></div>'
+                  : '<div class="who"><span class="avatar">🧒</span><div class="bubble">🎂 You are '+n+'!</div></div>')+
+           '<div class="cmd">'+esc(text)+'</div>',
+    opts:shuffle(opts).map(function(s){ return {html:esc(s), ok:s === ans}; })};
+}
+function clockSvg(h, m, sz){
+  var ha = (h % 12) * 30 + m * .5, ma = m * 6, t = '', i, a;
+  for (i = 1; i <= 12; i++){ a = i * Math.PI / 6;
+    t += '<text x="'+(50+34*Math.sin(a)).toFixed(1)+'" y="'+(50-34*Math.cos(a)).toFixed(1)+'" font-size="10" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#3B2A1A">'+i+'</text>'; }
+  return '<svg viewBox="0 0 100 100" width="'+sz+'" height="'+sz+'" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#fff" stroke="#3B2A1A" stroke-width="4"/>'+t+
+    '<line x1="50" y1="50" x2="50" y2="28" stroke="#3B2A1A" stroke-width="6" stroke-linecap="round" transform="rotate('+ha+' 50 50)"/>'+
+    '<line x1="50" y1="50" x2="50" y2="14" stroke="#C0392B" stroke-width="4" stroke-linecap="round" transform="rotate('+ma+' 50 50)"/><circle cx="50" cy="50" r="4" fill="#3B2A1A"/></svg>';
+}
+function timeText(h, m, st){
+  var H = numWord(h), N = numWord(h % 12 + 1);
+  if (m === 0) return H + " o'clock";
+  if (m === 30) return st ? 'half past ' + H : H + ' thirty';
+  if (m === 15) return st ? 'fifteen past ' + H : H + ' fifteen';
+  return st ? 'fifteen to ' + N : H + ' forty-five';
+}
+function rndTime(){ return {h:1 + Math.floor(Math.random()*12), m:pick([0,15,30,45])}; }
+function timeOpts(t){
+  var out = [t], keys = {}; keys[t.h+':'+t.m] = 1;
+  var cand = [0,15,30,45].map(function(m){ return {h:t.h, m:m}; });
+  cand.push({h:t.h % 12 + 1, m:t.m}, {h:(t.h + 10) % 12 + 1, m:t.m});
+  shuffle(cand).forEach(function(c){ var k = c.h+':'+c.m; if (out.length < 4 && !keys[k]){ out.push(c); keys[k] = 1; } });
+  return shuffle(out);
+}
+function qClock(pool){
+  var pa = pick(pool.times), t = rndTime(), st = Math.random() < .5 ? 1 : 0;
+  var ans = pa.a.replace('{t}', timeText(t.h, t.m, st));
+  return {kind:'choice', badge:'🕒 Giờ', speak:pa.q, layout:'sent', answer:ans, speakAnswer:ans,
+    prompt:'<div>'+clockSvg(t.h, t.m, 130)+'</div><div class="cmd">'+esc(pa.q)+'</div>',
+    opts:timeOpts(t).map(function(x){ return {html:esc(pa.a.replace('{t}', timeText(x.h, x.m, st))), ok:x === t}; })};
+}
+function qTimeListen(pool){
+  var pa = pick(pool.times), t = rndTime(), st = Math.random() < .5 ? 1 : 0;
+  var s = pa.a.replace('{t}', timeText(t.h, t.m, st));
+  return {kind:'choice', badge:'🎧 Nghe giờ', speak:s, layout:'pics', answer:s,
+    prompt:(showTextOn() ? '<div><span class="wordtag">'+esc(s)+'</span></div>' : '')+'<div class="hint" style="margin:4px 0">Đồng hồ nào đúng?</div>',
+    opts:timeOpts(t).map(function(x){ return {html:clockSvg(x.h, x.m, 84), ok:x === t}; })};
+}
+function qSeq(pool){
+  var s = pick(pool.seqs), n = s.length, i = 1 + Math.floor(Math.random() * (n - 2));
+  var lo = Math.max(0, i - 2), hi = Math.min(n - 1, lo + 3); lo = Math.max(0, hi - 3);
+  var shown = s.slice(lo, hi + 1).map(function(x, j){ return (lo + j === i) ? '__' : x; }).join(', ');
+  var idx = []; for (var j = 0; j < n; j++){ if (j !== i) idx.push(j); }
+  idx.sort(function(a, b){ return Math.abs(a - i) - Math.abs(b - i); });
+  var opts = [s[i]].concat(sample(idx.slice(0, 5), 3).map(function(j){ return s[j]; }));
+  return {kind:'choice', badge:'📅 Điền chỗ trống', speak:null, layout:'text', answer:s.slice(lo, hi + 1).join(', '), speakAnswer:s[i],
+    prompt:'<div class="cmd" style="font-size:1.35rem">'+esc(shown)+'</div><div class="hint" style="margin:2px 0">Từ nào còn thiếu?</div>',
+    opts:shuffle(opts).map(function(x){ return {html:esc(x), ok:x === s[i]}; })};
+}
+var lastType = '';
+function nextQuestion(){
+  var pool = curPool(), ws = pool.words, types = [];
+  if (ws.length >= 2){ types.push('listen','pic2word','spell','tf'); }
+  if (qOddOk()) types.push('odd');
+  if (ws.some(function(w){ return patsFor('ask', w).length; })) types.push('ask','ask');
+  if (ws.some(function(w){ return patsFor('do', w).length; })) types.push('do');
+  if (ws.some(function(w){ return patsFor('yesno', w).length; })) types.push('yesno');
+  if (pool.nums) types.push('numd','numl','nums','numd');
+  if (pool.ages.length) types.push('age','age');
+  if (pool.times.length) types.push('clock','clock','tlisten');
+  if (pool.seqs.length) types.push('seq','seq');
+  var t2 = types.filter(function(t){ return t !== lastType; });
+  if (t2.length) types = t2;
+  var t = pick(types); lastType = t;
+  function wordsWith(kind){ return ws.filter(function(w){ return patsFor(kind, w).length; }); }
+  var q = null;
+  if (t==='listen') q = qListen(weightedWord(ws));
+  else if (t==='pic2word') q = qPic2Word(weightedWord(ws));
+  else if (t==='spell') q = qSpell(weightedWord(ws));
+  else if (t==='tf') q = qTF(weightedWord(ws));
+  else if (t==='odd') q = qOdd(pool);
+  else if (t==='ask') q = qAsk(weightedWord(wordsWith('ask')));
+  else if (t==='do') q = qDo(weightedWord(wordsWith('do')));
+  else if (t==='yesno') q = qYesNo(weightedWord(wordsWith('yesno')));
+  else if (t==='numd') q = qNumDigits(pool.nums);
+  else if (t==='numl') q = qNumListen(pool.nums);
+  else if (t==='nums') q = qNumSeq(pool.nums);
+  else if (t==='age') q = qAge(pool);
+  else if (t==='clock') q = qClock(pool);
+  else if (t==='tlisten') q = qTimeListen(pool);
+  else if (t==='seq') q = qSeq(pool);
+  if (!q) q = qListen(weightedWord(ws.length ? ws : D.words));
+  return q;
+}
+function qOddOk(){
+  var gs = D.groups.filter(function(g){ return uniq(g.words.map(function(w){ return w.e; })).length >= 3; });
+  return gs.length >= 2;
+}
+
+/* ---------- asking a question (modal) ---------- */
+function askQuestion(ctx, cb){
+  var q = nextQuestion();
+  Qc = {q:q, cb:cb, ctx:ctx || {}, done:false, sel:-1, ok:false, hid:[]};
+  if (q.kind === 'spell'){ Qc.pool = q.pool0.slice(); Qc.ans = []; }
+  renderQuestion(true);
+}
+function hintsLeft(){ return G ? G.hints : 0; }
+function renderQuestion(speak){
+  var q = Qc.q, c = Qc.ctx, html = '<span class="badge">'+q.badge+'</span>';
+  if (c.label) html += '<div class="hint" style="margin:0 0 4px">'+c.label+'</div>';
+  html += q.prompt;
+  if (q.speak) html += '<div><button class="btn say" onclick="say(Qc.q.speak)">🔊 Listen again</button></div>';
+  if (q.kind === 'choice'){
+    html += '<div class="opts '+q.layout+'">'+q.opts.map(function(o, i){
+      if (Qc.hid.indexOf(i) >= 0) return '<button class="opt hide" disabled></button>';
+      var cl = ''; if (Qc.done){ if (o.ok) cl = ' good'; else if (i === Qc.sel) cl = ' bad'; }
+      return '<button class="opt '+q.layout+cl+'" '+(Qc.done ? 'disabled' : '')+' onclick="pickOpt('+i+')">'+o.html+'</button>';
+    }).join('')+'</div>';
+    var wrongLeft = q.opts.filter(function(o, i){ return !o.ok && Qc.hid.indexOf(i) < 0; }).length;
+    if (!Qc.done && hintsLeft() > 0 && wrongLeft >= 3 && q.layout !== 'yn')
+      html += '<button class="btn" onclick="useHint()">🦜 Hint ('+hintsLeft()+')</button>';
+  } else {
+    html += '<div class="slots">'+(Qc.ans.length ? Qc.ans.map(function(x,i){ return '<button class="tk ans" '+(Qc.done?'disabled':'')+' onclick="spellBack('+i+')">'+esc(x.t)+'</button>'; }).join('') : '<span class="hint" style="margin:0">...</span>')+'</div>';
+    if (!Qc.done) html += '<div class="pool">'+Qc.pool.map(function(x){ return '<button class="tk" onclick="spellAdd('+x.id+')">'+esc(x.t)+'</button>'; }).join('')+'</div>';
+  }
+  if (Qc.done){
+    html += '<div class="fb '+(Qc.ok?'good':'bad')+'">'+(Qc.ok ? (c.okMsg || 'Great!') : ((c.badMsg || 'Not quite!')+' '+esc(q.answer)))+'</div>'+
+            '<button class="btn gold big" onclick="qContinue()">Continue →</button>';
+  }
+  openModal(html);
+  if (speak && q.speak){ var qq = Qc; setTimeout(function(){ if (Qc === qq && !Qc.done) say(q.speak); }, 300); }
+}
+function pickOpt(i){
+  if (!Qc || Qc.done) return;
+  Qc.sel = i; settle(Qc.q.opts[i].ok);
+}
+function useHint(){
+  if (!Qc || Qc.done || !G || G.hints < 1) return;
+  var q = Qc.q, wrong = [];
+  q.opts.forEach(function(o, i){ if (!o.ok && Qc.hid.indexOf(i) < 0) wrong.push(i); });
+  if (wrong.length < 3) return;
+  G.hints--; Qc.hid = Qc.hid.concat(sample(wrong, 2));
+  tone([[740,.08]]); drawHud(); renderQuestion(false);
+}
+function spellAdd(id){
+  if (!Qc || Qc.done) return;
+  var k = -1;
+  for (var i=0;i<Qc.pool.length;i++){ if (Qc.pool[i].id === id){ k = i; break; } }
+  if (k < 0) return;
+  Qc.ans.push(Qc.pool.splice(k, 1)[0]);
+  if (!Qc.pool.length){
+    var joined = Qc.ans.map(function(x){ return x.t; }).join(Qc.q.words ? ' ' : '');
+    settle(joined === Qc.q.answer.split(/\s+/).join(Qc.q.words ? ' ' : ''));
+    return;
+  }
+  tone([[520,.04]]); renderQuestion(false);
+}
+function spellBack(i){
+  if (!Qc || Qc.done) return;
+  Qc.pool.push(Qc.ans.splice(i, 1)[0]); renderQuestion(false);
+}
+function settle(ok){
+  var q = Qc.q;
+  Qc.done = true; Qc.ok = ok;
+  if (ok) okS(); else badS();
+  if (q.subject){ var k = q.subject.key; P.mastery[k] = ok ? Math.min(5, (P.mastery[k]||0)+1) : Math.max(0, (P.mastery[k]||0)-1); }
+  if (q.num){
+    if (!P.nhard) P.nhard = [];
+    var i = P.nhard.indexOf(q.num);
+    if (!ok && i < 0){ P.nhard.push(q.num); if (P.nhard.length > 12) P.nhard.shift(); }
+    if (ok && i >= 0) P.nhard.splice(i, 1);
+  }
+  if (G){ G.answered++; if (ok){ G.correct++; G.streak++; G.bestStreak = Math.max(G.bestStreak, G.streak); } else G.streak = 0; }
+  saveP();
+  if (ok){ var sp = q.speakAnswer || (q.subject ? q.subject.say : null); if (sp) say(sp); burst(['⭐'], 5); }
+  renderQuestion(false);
+  drawHud();
+}
+function qContinue(){
+  var cb = Qc.cb, ok = Qc.ok;
+  Qc = null; closeModal();
+  if (cb) cb(ok);
+}
+
+/* ---------- the board ---------- */
+function genSquares(len){
+  var sq = [], i;
+  for (i=0;i<len;i++) sq.push('q');
+  sq[0] = 'start'; sq[len-1] = 'end';
+  var pirates = 0, maxP = len >= 36 ? 2 : 1;
+  i = 3;
+  while (i <= len - 4){
+    var bag = ['coin','coin','chest','parrot','lucky'];
+    if (i >= 6) bag.push('storm','shark');
+    if (i >= 8 && i <= len - 6) bag.push('whirl');
+    if (i >= Math.round(len * 0.35) && pirates < maxP) bag.push('pirate','pirate');
+    var t = pick(bag); if (t === 'pirate') pirates++;
+    sq[i] = t;
+    i += 2 + Math.floor(Math.random() * 3);
+  }
+  if (!pirates){ var pi = Math.round(len * 0.6); if (sq[pi] === 'q') sq[pi] = 'pirate'; }
+  return sq;
+}
+function startVoyage(){
+  closeModal();
+  var len = P.len; if (len !== 20 && len !== 28 && len !== 36) len = 28; P.len = len;
+  G = {len:len, sq:genSquares(len), pos:0, gold:0, gems:0, hints:1, streak:0, bestStreak:0, answered:0, correct:0, turns:0, busy:false, over:false, dice:'🎲', force:null};
+  screen = 'game';
+  go('<div class="top"><button class="btn" onclick="confirmExit()">✕</button><div class="hud" id="hud" style="flex:1;margin:0"></div></div>'+
+     '<div class="sea"><div class="board" id="board"></div></div>'+
+     '<p class="status" id="status"></p>'+
+     '<div class="ctrl"><div class="dice" id="dice">🎲</div><button class="btn gold big" id="roll" onclick="roll()">🎲 Roll!</button><button class="btn" onclick="showKey()" aria-label="Map key">🗺️</button></div>');
+  drawBoard(); drawHud(); drawCtrl();
+  setStatus('Roll the dice to start your voyage!');
+}
+function setStatus(t){ var s = $('status'); if (s) s.textContent = vi(t); }
+function drawHud(){
+  var h = $('hud'); if (!h || !G) return;
+  h.innerHTML = '<span class="pill">💰 '+G.gold+'</span><span class="pill">💎 '+G.gems+'</span><span class="pill">🦜 '+G.hints+'</span>'+
+    (G.streak >= 2 ? '<span class="pill">🔥 '+G.streak+'</span>' : '')+'<span class="pill">🧭 '+G.pos+'/'+(G.len-1)+'</span>';
+}
+function drawCtrl(){
+  var r = $('roll'); if (r) r.disabled = !!(G && (G.busy || G.over));
+  var d = $('dice'); if (d && G) d.textContent = G.dice;
+}
+function drawBoardOld(){
+  var b = $('board'); if (!b || !G) return;
+  var cols = 5, rows = Math.ceil(G.len / cols), html = '';
+  for (var dr = 0; dr < rows; dr++){
+    var r = rows - 1 - dr;
+    for (var dc = 0; dc < cols; dc++){
+      var n = r * cols + (r % 2 === 0 ? dc : cols - 1 - dc);
+      if (n >= G.len){ html += '<div></div>'; continue; }
+      var t = SQT[G.sq[n]], here = (n === G.pos);
+      html += '<div class="sq'+(here ? ' here' : '')+'"><div class="in" style="background:'+t.bg+'"><span class="no">'+(n===0 ? '' : n)+'</span>'+
+              (here ? '<span class="tok">'+P.ship+'</span><span class="mini">'+(G.sq[n]==='q' ? '' : t.ic)+'</span>' : t.ic)+'</div></div>';
+    }
+  }
+  b.innerHTML = html;
+}
+function ringPos(i,n){
+  var s = n - 1;
+  if (i <= s) return {r:n, c:n-i, side:'b'};
+  if (i <= 2*s) return {r:n-(i-s), c:1, side:'l'};
+  if (i <= 3*s) return {r:1, c:1+(i-2*s), side:'t'};
+  return {r:1+(i-3*s), c:n, side:'r'};
+}
+function drawBoard(){
+  var b = $('board'); if (!b || !G) return;
+  var n = G.len/4 + 1, s = n - 1, html = '';
+  var cols = ['#8B5A2B','#6EC6EE','#F28CC8','#FF9F43','#E74C3C','#F7DC4B','#3DBE6B','#3B6FD4'];
+  b.style.gridTemplateColumns = 'repeat('+n+',1fr)';
+  for (var i = 0; i < G.len; i++){
+    var p = ringPos(i, n), t = SQT[G.sq[i]], here = (i === G.pos), corner = (i % s === 0);
+    var band = (G.sq[i] === 'q' && !corner) ? '<i class="band '+p.side+'" style="background:'+cols[Math.floor(i/3)%8]+'"></i>' : '';
+    html += '<div class="sq'+(here ? ' here' : '')+(corner ? ' corner' : '')+'" style="grid-row:'+p.r+';grid-column:'+p.c+'"><div class="in" style="background:'+t.bg+'">'+band+
+            '<span class="no">'+(i===0 ? '' : i)+'</span>'+(here ? '<span class="tok">'+P.ship+'</span>' : t.ic)+'</div></div>';
+  }
+  html += '<div class="cbox" style="grid-row:2/'+n+';grid-column:2/'+n+'"><div class="cin">'+
+          '<div class="ccard a"><span>🦜</span>MAY MẮN</div>'+
+          '<div class="ctitle">'+esc((DECK.title||'Treasure Hunt').toUpperCase())+'<small>🏴‍☠️</small></div>'+
+          '<div class="ccard c"><span>❓</span>CÂU HỎI</div></div></div>';
+  b.innerHTML = html;
+}
+function confirmExit(){
+  openModal('<h2>Leave the voyage?</h2><p class="hint">Your treasure from this voyage will be lost.</p><div class="row"><button class="btn" onclick="closeModal()">Keep sailing</button><button class="btn gold" onclick="home()">Leave</button></div>');
+}
+function evt(icon, title, text, btn, cb){
+  evtCb = cb;
+  openModal('<div class="big">'+icon+'</div><h2>'+esc(title)+'</h2><p class="hint">'+text+'</p><button class="btn gold big" onclick="evtOk()">'+(btn || 'OK')+'</button>');
+}
+function evtOk(){ closeModal(); var cb = evtCb; evtCb = null; if (cb) cb(); }
+
+function roll(){
+  if (!G || G.busy || G.over) return;
+  G.busy = true; drawCtrl();
+  var n = 0;
+  var iv = setInterval(function(){
+    G.dice = 1 + Math.floor(Math.random()*6); var d = $('dice'); if (d) d.textContent = G.dice; tone([[500,.03]]);
+    if (++n >= 8){
+      clearInterval(iv);
+      var v = (G.force && G.force.length) ? G.force.shift() : 1 + Math.floor(Math.random()*6);
+      G.dice = v; var d2 = $('dice'); if (d2) d2.textContent = v;
+      G.turns++;
+      setStatus('You rolled '+v+'!');
+      setTimeout(function(){ moveBy(v); }, 450);
+    }
+  }, 80);
+}
+function moveBy(v){
+  var target = Math.min(G.len - 1, G.pos + v);
+  (function step(){
+    if (!G) return;
+    if (G.pos < target){ G.pos++; tone([[420+G.pos*8,.05]]); drawBoard(); drawHud(); setTimeout(step, 230); }
+    else land();
+  })();
+}
+function moveBack(k, cb){
+  var target = Math.max(0, G.pos - k);
+  (function step(){
+    if (!G) return;
+    if (G.pos > target){ G.pos--; tone([[360,.05]]); drawBoard(); drawHud(); setTimeout(step, 230); }
+    else if (cb) cb();
+  })();
+}
+function endTurn(){
+  if (!G || G.over) return;
+  G.busy = false; drawBoard(); drawHud(); drawCtrl();
+  setStatus('Roll the dice!');
+}
+function reward(){ return 10 + 2 * Math.min(G.streak, 5); }
+function addGold(n){ G.gold = Math.max(0, G.gold + n); drawHud(); }
+
+function land(){
+  var t = G.sq[G.pos];
+  drawBoard(); drawHud();
+  if (t === 'end') return finalTest();
+  if (t === 'q'){
+    var r = reward();
+    setStatus('A question!');
+    askQuestion({label:'Answer to win gold!', okMsg:'Great! +'+r+' 💰', badMsg:'Not quite!'}, function(ok){
+      if (ok){ addGold(r); coinS(); floatText('+'+r+' 💰'); }
+      endTurn();
+    });
+    return;
+  }
+  if (t === 'coin'){
+    evt('💰', 'Gold coins!', 'You found a pile of gold. +8 💰', 'Yo ho ho!', function(){ addGold(8); coinS(); burst(['💰','✨'], 10); endTurn(); });
+    return;
+  }
+  if (t === 'parrot'){
+    evt('🦜', 'Your parrot is here!', 'Squawk! Hint +1. Use it on a hard question to remove two wrong answers.', 'Thanks!', function(){ G.hints++; drawHud(); endTurn(); });
+    return;
+  }
+  if (t === 'lucky'){
+    evt('🍀', 'Lucky clover!', 'Roll the dice again!', 'Roll!', function(){ G.busy = false; drawCtrl(); setStatus('Roll again!'); setTimeout(roll, 150); });
+    return;
+  }
+  if (t === 'chest'){
+    var r2 = Math.random();
+    if (r2 < .4)       evt('🎁', 'Treasure chest!', 'You found 20 gold! +20 💰', 'Wow!', function(){ addGold(20); coinS(); burst(['💰','✨'], 12); endTurn(); });
+    else if (r2 < .7)  evt('🎁', 'Treasure chest!', 'A sparkling gem! +1 💎', 'Wow!', function(){ G.gems++; drawHud(); coinS(); burst(['💎','✨'], 12); endTurn(); });
+    else if (r2 < .9)  evt('🎁', 'Treasure chest!', 'Two parrot hints! +2 🦜', 'Thanks!', function(){ G.hints += 2; drawHud(); endTurn(); });
+    else               evt('🎁', 'Treasure chest!', 'A magic wind! Move forward 2 squares.', 'Sail!', function(){ moveBy2(2); });
+    return;
+  }
+  if (t === 'whirl'){
+    evt('🌀', 'Whirlpool!', 'Hold on! The water spins your ship...', 'Spin!', function(){
+      var lo = Math.max(1, G.pos - 3), hi = Math.min(G.len - 2, G.pos + 5), np = lo + Math.floor(Math.random() * (hi - lo + 1));
+      G.pos = np; tone([[300,.1],[500,.1],[700,.1]]); drawBoard(); drawHud();
+      setStatus('The whirlpool took you to square '+np+'!');
+      endTurn();
+    });
+    return;
+  }
+  if (t === 'storm'){
+    evt('⛈️', 'Storm!', 'Answer a question to calm the sea. If not, you sail back 3 squares!', 'I can do it!', function(){
+      askQuestion({label:'⛈️ Calm the storm!', okMsg:'The sea is calm! +5 💰', badMsg:'The storm pushes you back!'}, function(ok){
+        if (ok){ addGold(5); endTurn(); } else moveBack(3, endTurn);
+      });
+    });
+    return;
+  }
+  if (t === 'shark'){
+    evt('🦈', 'Shark attack!', 'Answer correctly to scare it away and win 15 gold. If not, you lose 8 gold!', 'Brave!', function(){
+      askQuestion({label:'🦈 Scare the shark!', okMsg:'The shark swims away! +15 💰', badMsg:'Chomp! -8 💰'}, function(ok){
+        if (ok){ addGold(15); coinS(); } else addGold(-8);
+        endTurn();
+      });
+    });
+    return;
+  }
+  if (t === 'pirate'){
+    evt('🏴‍☠️', 'Pirate battle!', 'Answer 3 questions. Win 2 and you beat the pirates!', 'Fight!', function(){ battle(3, 2, 0, 0); });
+    return;
+  }
+  endTurn();
+}
+function moveBy2(k){
+  var target = Math.min(G.len - 1, G.pos + k);
+  (function step(){
+    if (G.pos < target){ G.pos++; tone([[420+G.pos*8,.05]]); drawBoard(); drawHud(); setTimeout(step, 230); }
+    else { if (G.pos >= G.len - 1) land(); else endTurn(); }
+  })();
+}
+function battle(total, need, i, wins){
+  if (i >= total){
+    if (wins >= need){
+      evt('🏆', 'You win the battle!', 'The pirates run away and leave 25 gold and a gem! +25 💰 +1 💎', 'Hooray!', function(){ addGold(25); G.gems++; drawHud(); coinS(); burst(['💎','💰','🎉'], 16); endTurn(); });
+    } else {
+      evt('🏴‍☠️', 'The pirates won this time', 'They take 8 gold. Try again next time!', 'Arr...', function(){ addGold(-8); endTurn(); });
+    }
+    return;
+  }
+  askQuestion({label:'⚔️ Battle '+(i+1)+' of '+total+' · hits: '+wins, okMsg:'Direct hit! ⚔️', badMsg:'Missed!'}, function(ok){
+    battle(total, need, i + 1, wins + (ok ? 1 : 0));
+  });
+}
+function finalTest(){
+  evt('🏝️', 'Treasure Island!', 'Answer 3 questions to open the treasure chest. Each correct answer gives you a gem!', 'Open the chest!', function(){
+    (function round(i, got){
+      if (i >= 3) return finishVoyage(got);
+      askQuestion({label:'🗝️ Chest lock '+(i+1)+' of 3', okMsg:'Click! +1 💎', badMsg:'Stuck!'}, function(ok){
+        if (ok){ G.gems++; drawHud(); }
+        round(i + 1, got + (ok ? 1 : 0));
+      });
+    })(0, 0);
+  });
+}
+function finishVoyage(got){
+  if (!G || G.over) return;
+  G.over = true;
+  var value = G.gold + G.gems * 15 + (got === 3 ? 30 : 0);
+  var oldRank = rankOf(P.gold), oldGold = P.gold;
+  P.gold += value; P.gems += G.gems; P.runs++;
+  var isBest = value > P.bestTreasure; if (isBest) P.bestTreasure = value;
+  var newRank = rankOf(P.gold);
+  var unlocked = SHIPS.filter(function(s){ return s.need > oldGold && s.need <= P.gold; });
+  saveP();
+  screen = 'result';
+  var acc = G.answered ? Math.round(G.correct / G.answered * 100) : 0;
+  go('<div class="panel center"><div class="big">'+(got === 3 ? '🏆' : '💎')+'</div>'+
+    '<h2>'+(got === 3 ? 'You opened the chest!' : 'You found the treasure!')+'</h2>'+
+    '<div style="font-size:2.2rem;font-weight:700">💰 '+value+'</div>'+
+    (isBest ? '<p style="font-weight:700;margin:2px 0">🌟 New best treasure!</p>' : '')+
+    '<div class="stats"><span class="stat">💰 '+G.gold+' gold</span><span class="stat">💎 '+G.gems+' gems</span><span class="stat">🎯 '+acc+'%</span><span class="stat">🔥 best streak '+G.bestStreak+'</span><span class="stat">🎲 '+G.turns+' rolls</span></div>'+
+    '<div class="ship" aria-hidden="true">'+P.ship+'</div>'+
+    '<p style="margin:0 0 4px;font-weight:700">'+newRank.e+' '+newRank.n+' · total 💰 '+P.gold+'</p>'+
+    (newRank !== oldRank ? '<p style="font-weight:700;color:var(--blue);margin:4px 0">🎉 New rank: '+newRank.n+'!</p>' : '')+
+    (unlocked.length ? '<p style="font-weight:700;margin:4px 0">🚢 New ship unlocked: '+unlocked.map(function(s){ return s.e+' '+s.n; }).join(', ')+'</p>' : '')+
+    '<div class="stack"><button class="btn gold big" onclick="startVoyage()">⚓ Sail again</button><button class="btn big" onclick="home()">Home</button></div></div>');
+  tone([[523,.1],[659,.1],[784,.1],[1047,.25]]);
+  burst(['💎','💰','⭐','🎉'], 22);
+}
+
+/* =====================================================================
+   Teacher helper (open the page with #teacher at the end of the link)
+   ===================================================================== */
+var EMOJI = '🦵 🦶 ✋ 👂 👃 👄 👁️ 👀 💇 🧠 😊 😀 😢 😡 😴 🤩 🐶 🐱 🐭 🐰 🦊 🐻 🐼 🐯 🦁 🐮 🐷 🐸 🐔 🐧 🦆 🦉 🐴 🦄 🐝 🦋 🐢 🐍 🐟 🐬 🐳 🐘 🍎 🍌 🍇 🍓 🍊 🍉 🥕 🍞 🧀 🥚 🍳 🍕 🍔 🍟 🍦 🎂 🍪 🍫 🥛 🍝 🍿 🥧 🍐 📖 📚 ✏️ 📏 🎒 🏫 🏊 🚴 🏃 💃 🎨 🎤 🎸 🎹 📷 🎬 🎮 ⚽ 🏀 🏸 🧩 🏠 🚗 🚌 🚲 ✈️ ⛵ 🌊 🌈 🌞 🌙 ⭐ 🌸 🌳 🌹 👕 👟 👫 👩‍🏫 👍 👑 🔑 🧦'.split(' ');
+var EXAMPLE = "# Unit 1 - Feelings\n👍 | good\n😄 | happy\n🤩 | excited\n😫 | tired\n😴 | sleepy\n😕 | not so good\nask | How are you? | I'm {w}. And you?\n\n# Unit 2 - Numbers\nnumbers | 11 | 100\nage | How old are you? | I'm {n} years old.\nage | How old is {he}? | {He}'s {n} years old.\n\n# Unit 3 - Friends\n👫 | friends\n🏫 | classmates\n👩‍🏫 | teachers\nask | Who are they? | They are {w}.\n\n# Unit 4 - Body\n🦵 | leg | Touch your leg!\n🦶 | foot / feet | Touch your foot!\n🙂 | face | Touch your face!\n📖 | open | Open your book!\n👆 | touch | -\ndo | {v}\n\n# Unit 5 - Hobbies\n🚴 | riding a bike\n🎬 | watching movies\n✉️ | collecting stamps\n🎸 | playing the guitar\n🍳 | cooking meals\n🎂 | baking cakes\nyesno | Do you like {w}? | Yes, I do. | No, I don't. | I like\n";
+function openEditor(){
+  screen = 'editor'; closeModal();
+  go('<div class="top"><button class="btn" onclick="home()">← Quay lại</button><div class="pill">⚙️ Giáo viên</div></div>'+
+    '<div class="panel ed">'+
+      '<h2>Bộ từ vựng</h2>'+
+      '<p class="hint" style="margin:0">Sửa danh sách bên dưới, bấm <b>Sao chép cho words.txt</b>, rồi dán vào file <b>words.txt</b> trên GitHub (nút bút chì) và bấm Commit.</p>'+
+      '<label for="ed-title">Tên trò chơi</label><input type="text" id="ed-title" maxlength="40" value="'+esc(DECK.title||'Treasure Hunt')+'">'+
+      '<label for="ed-src">Danh sách từ</label><textarea id="ed-src" spellcheck="false" oninput="edInfo()">'+esc(DECK.source)+'</textarea>'+
+      '<div class="chk"><input type="checkbox" id="ed-show" '+(DECK.showText?'checked':'')+'><span>Hiện chữ ở câu Listen (khi bé không nghe được âm thanh)</span></div>'+
+      '<div class="info" id="ed-info"></div>'+
+      '<details><summary>📝 Cách viết danh sách</summary>'+
+        '<p>Mỗi dòng là một từ: <b>emoji | từ</b>. Dùng <b># Tên nhóm</b> để chia nhóm (mỗi nhóm là một chủ đề). Từ có số nhiều thì viết <b>foot / feet</b>.</p>'+
+        '<pre># Unit 1 - Feelings\n😊 | happy\n😴 | sleepy\nask | How are you? | I\'m {w}. And you?\n\n# Unit 2 - Numbers\nnumbers | 11 | 100\nage | How old are you? | I\'m {n} years old.\nage | How old is {he}? | {He}\'s {n} years old.\n\n# Unit 4 - Body\n🦵 | leg | Touch your leg!\n📖 | open | Open your book!\ndo | {v}\n\n# Unit 5 - Hobbies\n🚴 | riding a bike\nyesno | Do you like {w}? | Yes, I do. | No, I don\'t. | I like</pre>'+
+        '<p>• <b>ask | câu hỏi | câu trả lời</b>: bé nhìn hình rồi chọn câu trả lời đúng. <b>{w}</b> là từ, <b>{pl}</b> số nhiều, <b>{a}</b> tự thành a/an, <b>{W}</b> viết hoa chữ đầu, <b>{v}</b> là cột thứ 3 của từ.</p>'+
+        '<p>• <b>do | câu lệnh</b>: bé nghe lệnh rồi chọn đúng hình. Có thể dùng <b>{v}</b> để mỗi từ có câu lệnh riêng (viết câu lệnh ở cột thứ 3 của từ).</p>'+
+        '<p>• <b>yesno | câu hỏi | Yes | No | chữ trong bong bóng</b>: bé trả lời Yes/No theo nhân vật. Dùng <b>{he}</b>, <b>{name}</b> cho câu về người khác.</p>'+
+        '<p>• <b>numbers | 11 | 100</b>: bật các câu hỏi về số (đọc số, nghe số, đếm tiếp) trong khoảng từ 11 đến 100. <b>age | câu hỏi | câu trả lời</b> (có <b>{n}</b>): bật câu hỏi về tuổi.</p>'+
+        '<p>• <b>time | câu hỏi | câu trả lời có {t}</b>: bật câu hỏi xem đồng hồ (ví dụ <b>time | What time is it? | It\'s {t}.</b>). <b>seq | mục 1 | mục 2 | mục 3 | ...</b>: câu hỏi điền chỗ trống trong dãy thứ tự (các thứ trong tuần, các tháng).</p>'+
+        '<p>• Dấu <b>-</b> ở cột thứ 3 của từ nghĩa là từ đó không dùng mẫu câu nào. Dòng bắt đầu bằng // là ghi chú.</p>'+
+      '</details>'+
+      '<details><summary>😀 Bảng emoji (bấm để chèn)</summary><div class="emo" id="ed-emo"></div></details>'+
+      '<div class="stack"><button class="btn gold big" onclick="copyList()">📋 Sao chép cho words.txt</button>'+
+        '<button class="btn big" onclick="testDeck()">▶️ Chơi thử (chưa lưu)</button>'+
+        '<button class="btn" onclick="useExample()">Dùng mẫu</button></div>'+
+      '<p class="msg" id="ed-msg"></p>'+
+      '<div class="foot"><button class="link" onclick="confirmReset()">Xóa tiến độ chơi trên thiết bị này</button></div>'+
+    '</div>');
+  $('ed-emo').innerHTML = EMOJI.map(function(e){ return '<button type="button" data-e="'+e+'" onclick="insEmoji(this.getAttribute(\'data-e\'))">'+e+'</button>'; }).join('');
+  edInfo();
+}
+function curDeck(){ return {v:1, title:($('ed-title').value.trim() || 'Treasure Hunt'), source:$('ed-src').value, showText:$('ed-show').checked}; }
+function edInfo(){
+  var d = parseDeck($('ed-src').value);
+  var html = '<b>'+d.words.length+' từ</b> · '+d.groups.length+' nhóm'+(d.nums ? ' · có phần số ('+d.nums.min+' đến '+d.nums.max+')' : '')+(d.ages.length ? ' · có câu hỏi tuổi' : '');
+  if (d.words.length < 2) html += '<br><span class="w">Cần ít nhất 2 từ để chơi.</span>';
+  else if (d.words.length < 4) html += '<br><span class="w">Nên có từ 4 từ trở lên để câu hỏi có đủ lựa chọn.</span>';
+  d.warnings.slice(0,6).forEach(function(w){ html += '<br><span class="w">⚠️ '+esc(w)+'</span>'; });
+  if (d.warnings.length > 6) html += '<br><span class="w">... và '+(d.warnings.length-6)+' cảnh báo khác</span>';
+  $('ed-info').innerHTML = html;
+}
+function insEmoji(e){
+  var ta = $('ed-src'); ta.focus();
+  var s = ta.selectionStart, t = ta.selectionEnd;
+  if (typeof s !== 'number'){ ta.value += e; }
+  else { ta.value = ta.value.slice(0,s) + e + ta.value.slice(t); ta.selectionStart = ta.selectionEnd = s + e.length; }
+  edInfo();
+}
+function msg(t, err){ var m=$('ed-msg'); if(m){ m.textContent=t; m.className='msg'+(err?' err':''); } }
+function useExample(){ $('ed-src').value = EXAMPLE; edInfo(); msg('Đã điền danh sách mẫu. Bạn có thể sửa rồi sao chép.'); }
+function testDeck(){
+  var deck = curDeck();
+  if (parseDeck(deck.source).words.length < 2){ msg('Cần ít nhất 2 từ để chơi thử.', true); return; }
+  useDeck(deck); home();
+}
+function buildWordsTxt(){
+  var d = curDeck();
+  return '@title '+d.title+'\n@showtext '+(d.showText ? 'on' : 'off')+'\n\n'+d.source.replace(/\s+$/,'')+'\n';
+}
+function copyList(){
+  var text = buildWordsTxt();
+  var tmp = document.createElement('textarea');
+  tmp.value = text; tmp.style.position = 'fixed'; tmp.style.top = '0'; tmp.style.opacity = '0';
+  document.body.appendChild(tmp); tmp.focus(); tmp.select();
+  var ok = false;
+  try{ ok = document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(tmp);
+  if (ok){ msg('Đã sao chép! Giờ dán vào file words.txt trên GitHub rồi bấm Commit.'); }
+  else {
+    openModal('<h2>Sao chép thủ công</h2><p class="hint">Chọn hết nội dung dưới đây, sao chép rồi dán vào words.txt.</p>'+
+      '<textarea id="manual-copy" readonly style="width:100%;min-height:220px;font-family:Consolas,Menlo,monospace;font-size:.9rem;border:3px solid var(--line);border-radius:12px;padding:8px;background:#fff;color:var(--ink)"></textarea>'+
+      '<button class="btn gold big" style="margin-top:10px" onclick="closeModal()">Xong</button>');
+    var mc = $('manual-copy'); mc.value = text; mc.focus(); mc.select();
+  }
+}
+function confirmReset(){
+  openModal('<h2>Xóa tiến độ?</h2><p class="hint">Vàng, tàu, cấp bậc và các sao từ vựng trên thiết bị này sẽ bị xóa.</p>'+
+    '<div class="row"><button class="btn" onclick="closeModal()">Hủy</button><button class="btn gold" onclick="doReset()">Xóa</button></div>');
+}
+function doReset(){ P = freshP(); saveP(); closeModal(); home(); }
+
+function boot(){
+  if (location.hash === '#teacher') isTeacher = true;
+  if (window.fetch){
+    app.innerHTML = '<div class="panel center"><div class="ship">⛵</div><p class="hint">Đang tải...</p></div>';
+    var done = false;
+    var fin = function(){ if (done) return; done = true; home(); };
+    setTimeout(fin, 2000);
+    try{
+      fetch('words.txt?v=' + Date.now(), {cache:'no-store'}).then(function(r){
+        if (!r.ok) throw new Error('no words.txt');
+        return r.text();
+      }).then(function(t){ if (!done) applyWordsTxt(t); fin(); }).catch(fin);
+    }catch(e){ fin(); }
+  } else home();
+}
+boot();
+</script>
+</body>
+</html>

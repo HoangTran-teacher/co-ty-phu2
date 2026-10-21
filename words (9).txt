@@ -1,0 +1,63 @@
+@title Treasure Hunt
+@showtext off
+
+# Unit 1 - Quốc gia
+🇺🇸 | America / American
+🇦🇺 | Australia / Australian
+🇬🇧 | Britain / British
+🇻🇳 | Vietnam / Vietnamese
+ask | Where are you from? | I'm from {w}.
+ask | Where is he from? | He's from {w}.
+ask | Where is she from? | She's from {w}.
+
+# Unit 2 - Giờ
+⏰ | o'clock
+🕧 | half past
+time | What time is it? | It's {t}.
+time | What time do you get up? | I get up at {t}.
+time | What time do you go to school? | I go to school at {t}.
+time | What time do you go to bed? | I go to bed at {t}.
+
+# Unit 3 - Thứ trong tuần
+🌙 | Monday
+🔥 | Tuesday
+🐫 | Wednesday
+⚡ | Thursday
+🎉 | Friday
+⚽ | Saturday
+☀️ | Sunday
+seq | Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday
+ask | What day is it today? | It's {w} today.
+
+# Unit 3 - Việc làm trong tuần
+📚 | study at school | Mondays
+🏠 | stay at home | Sundays
+ask | What do you do on {v}? | I {w} on {v}.
+
+# Unit 4 - Tháng
+🎆 | January
+💝 | February
+🌷 | March
+🌧️ | April
+🌺 | May
+🏖️ | June
+🍉 | July
+🌻 | August
+🏫 | September
+🎃 | October
+🍂 | November
+🎄 | December
+seq | January | February | March | April | May | June | July | August | September | October | November | December
+ask | When's your birthday? | It's in {w}.
+
+# Unit 5 - Khả năng
+🍳 | cook a meal
+🎨 | draw a picture
+🤸 | jump rope
+🎤 | sing a song
+🛼 | roller skate
+🎹 | play the piano
+🎸 | play the guitar
+ask | What can you do? | I can {w}.
+yesno | Can you {w}? | Yes, I can. | No, I can't. | I can
+yesno | Can {he} {w}? | Yes, {he} can. | No, {he} can't. | {name} can
