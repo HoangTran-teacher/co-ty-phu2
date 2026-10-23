@@ -1,0 +1,67 @@
+@title Treasure Hunt
+@showtext off
+
+# Unit 1 - Quốc tịch
+🇲🇾 | Malaysia / Malaysian
+🇸🇬 | Singapore / Singaporean
+🇹🇭 | Thailand / Thai
+🇨🇳 | China / Chinese
+ask | What nationality are you? | I'm {pl}.
+
+# Unit 2 - Thói quen hằng ngày
+🛏️ | get up
+🚿 | take a shower
+🏫 | go to school
+📝 | do homework
+⚽ | play football
+📖 | read books
+ask | What do you do in the morning? | First, I {w}.
+ask | What do you do in the morning? | Then, I {w}.
+ask | What do you do in the morning? | Finally, I {w}.
+
+# Unit 2 - Thứ tự (first, then, finally)
+🥇 | first
+➡️ | then
+🏁 | finally
+
+# Unit 3 - Hoạt động
+🔤 | study English
+➗ | study Maths
+🧹 | do housework
+🎧 | listen to music
+🧑‍🤝‍🧑 | play with friends
+ask | What do you do after school? | I {w}.
+
+# Unit 3 - Mức độ thường xuyên
+🚫 | never
+🔁 | usually
+💯 | always
+ask | How often do you study English? | I {w} study English.
+ask | How often do you listen to music? | I {w} listen to music.
+ask | How often do you play with friends? | I {w} play with friends.
+
+# Unit 4 - Đồ ăn
+🍟 | chips
+🍇 | grapes
+🍓 | jam
+🍪 | biscuits
+ask | What do you want to eat? | I want some {w}.
+ask | What do you want to eat? | I don't want any {w}.
+
+# Unit 4 - Đồ uống
+🧃 | juice
+🍋 | lemonade
+💧 | water
+🥤 | coke
+ask | What do you want to drink? | I want some {w}.
+ask | What do you want to drink? | I don't want any {w}.
+
+# Unit 5 - Khả năng
+🚴 | ride a bike
+🐎 | ride a horse
+🏸 | play badminton
+🏀 | play basketball
+🧩 | do puzzles
+ask | What can you do? | I can {w}.
+yesno | Can you {w}? | Yes, I can. | No, I can't. | I can
+yesno | Can {he} {w}? | Yes, {he} can. | No, {he} can't. | {name} can
