@@ -1,0 +1,68 @@
+@title Treasure Hunt
+@showtext off
+
+# Unit 1 - Các mùa
+🌸 | spring
+☀️ | summer
+🍂 | autumn
+❄️ | winter
+ask | What season is it? | It's {w}.
+
+# Unit 1 - Nơi sống
+🏙️ | in the city | city
+🌾 | in the countryside | countryside
+🏘️ | in the town | town
+⛰️ | in the mountain | mountain
+ask | Where do you live? | I live {w}.
+ask | Where's he from? | He's from the {v}.
+ask | Where's she from? | She's from the {v}.
+
+# Unit 2 - Nơi chốn
+🏠 | house
+🏢 | flat
+🏬 | building
+🗼 | tower
+🏫 | school
+🎠 | playground
+🎬 | cinema
+🛍️ | shopping centre
+ask | What's this? | It's {a} {w}.
+
+# Unit 2 - Gần và xa
+📌 | near
+🔭 | far
+ask | Is the school near or far? | It's {w}.
+ask | Is the cinema near or far? | It's {w}.
+
+# Unit 3 - Quốc tịch
+🇬🇧 | Britain / British
+🇺🇸 | America / American
+🇦🇺 | Australia / Australian
+🇯🇵 | Japan / Japanese
+🇲🇾 | Malaysia / Malaysian
+🇮🇳 | India / Indian
+🇨🇳 | China / Chinese
+ask | Where's he from? | He's from {w}.
+ask | Where's she from? | She's from {w}.
+ask | Where are they from? | They're from {w}.
+ask | What nationality is he? | He's {pl}.
+ask | What nationality is she? | She's {pl}.
+
+# Unit 4 - Sở thích
+🎻 | playing the violin
+💻 | surfing the Internet
+🚶 | going for a walk
+📚 | reading stories
+ask | What do you like doing in your free time? | I like {w}.
+yesno | Do you like {w}? | Yes, I do. | No, I don't. | I like
+
+# Unit 5 - Nghề nghiệp
+👨‍🚒 | firefighter
+🎙️ | reporter
+👨‍🌾 | gardener
+✍️ | writer
+👩‍🏫 | teacher
+👩‍⚕️ | doctor
+👩‍🍳 | chef
+💇 | hairdresser
+ask | What would you like to be in the future? | I'd like to be {a} {w}.
